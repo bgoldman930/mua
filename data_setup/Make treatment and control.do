@@ -85,7 +85,6 @@ save `rural', replace
 *Create list of counties in control group
 *---------------------------------------------------------------------
 
-project, uses("$mua/data/derived_data/mua.dta")
 use "$mua/data/derived_data/mua.dta", clear
 
 *Create spine of rural counties with MUA designation
