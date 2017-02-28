@@ -1,0 +1,5 @@
+# project ignores
+*.log
+mua_files.dta
+mua_links.dta
+archive/
