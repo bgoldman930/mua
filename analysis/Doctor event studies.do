@@ -5,7 +5,8 @@ Purpose: Does MUA designation cause an increase in the number of doctors?
 * Set directories
 return clear
 do `"`c(sysdir_personal)'profile.do"'
-global mua $dropbox/mua
+capture project, doinfo
+global root `r(pdir)'
 set more off 
 
 *Yellow to Blue map colors
@@ -16,8 +17,8 @@ local darkcolor "4 20 90"
 *Do MUA's get more doctors after designation
 *---------------------------------------------------------------------
 
-project, uses("$mua/data/derived_data/cty_basefile.dta")
-use $mua/data/derived_data/cty_basefile, clear
+project, uses("${root}/data/derived/cty_basefile.dta")
+use "${root}/data/derived/cty_basefile.dta", clear
 
 keep county pop2* desig_year npi_count* treatment statename cz rural
 reshape long pop npi_count, i(county desig_year treatment) j(year)
@@ -127,7 +128,8 @@ foreach var in doc doc_ctyfx doc_yrfx doc_ctyfx_yrfx {
 		text(`y1' `x1' "Change in Slope: `beta'") ///
 		text(`y2' `x2' "(`error')") ///
 		legend(off)
-	graph export $mua/analysis/figures/treat_`var'.pdf, replace
+	graph export "${root}/results/figures/treat_`var'.pdf", replace
+	project, creates("${root}/results/figures/treat_`var'.pdf") preserve
 
 	if "`var'" != "doc_ctyfx_yrfx" & "`var'" != "doc_yrfx" {
 		twoway ///
@@ -137,7 +139,8 @@ foreach var in doc doc_ctyfx doc_yrfx doc_ctyfx_yrfx {
 			ytitle("Doctors Per 1000 Residents") ///
 			xtitle("Year Relative to Designation") ///
 			legend(off)
-		graph export $mua/analysis/figures/control_`var'.pdf, replace
+		graph export "${root}/results/figures/control_`var'.pdf", replace
+		project, creates("${root}/results/figures/control_`var'.pdf") preserve
 	}
 }
 
@@ -170,8 +173,8 @@ twoway ///
 	xtitle("Year") ///
 	legend(order(5 "National") ///
 		row(1))
-graph export $mua/analysis/figures/national_doc_a.pdf, replace
-
+graph export "${root}/results/figures/national_doc_a.pdf", replace
+project, creates("${root}/results/figures/national_doc_a.pdf") preserve
 
 twoway ///
 	scatter doc year if rural==0, || ///
@@ -187,7 +190,8 @@ twoway ///
 	xtitle("Year") ///
 	legend(order(5 "National" 1 "Non-Rural" 3 "Rural") ///
 		row(1))
-graph export $mua/analysis/figures/national_doc_b.pdf, replace
+graph export "${root}/results/figures/national_doc_b.pdf", replace
+project, creates("${root}/results/figures/national_doc_b.pdf") preserve
 
 restore
 
@@ -222,8 +226,10 @@ foreach yr in 2007 2009 2011 2012 2013 2014 {
 		rangecolor("`lightcolor'" "`darkcolor'") ///
 		revcolor ///
 		twopt( legend(lab(2 "<`bottom'") lab(8 ">`top'")) ///
-		title("Doctors Per 10,000 Residents"))
-	graph export $mua/analysis/figures/doc_dens_st_`yr'.pdf, replace
+		title(" "))
+	graph export "${root}/results/figures/doc_dens_st_`yr'.pdf", replace
+	project, creates("${root}/results/figures/doc_dens_st_`yr'.pdf") preserve
+
 }
 
 restore
@@ -259,7 +265,8 @@ foreach yr in 2007 2009 2011 2012 2013 2014 {
 		revcolor ///
 		twopt( legend(lab(2 "<`bottom'") lab(8 ">`top'")) ///
 		title(" "))
-	graph export $mua/analysis/figures/doc_dens_cty_`yr'.pdf, replace
+	graph export "${root}/results/figures/doc_dens_cty_`yr'.pdf", replace
+	project, creates("${root}/results/figures/doc_dens_cty_`yr'.pdf") preserve
 }
 
 restore
@@ -295,94 +302,7 @@ foreach yr in 2007 2009 2011 2012 2013 2014 {
 		revcolor ///
 		twopt( legend(lab(2 "<`bottom'") lab(8 ">`top'")) ///
 		title(" "))
-	graph export $mua/analysis/figures/doc_dens_cz_`yr'.pdf, replace
+	graph export "${root}/results/figures/doc_dens_cz_`yr'.pdf", replace
+	project, creates("${root}/results/figures/doc_dens_cz_`yr'.pdf") preserve
 }
 
-
-*---------------------------------------------------------------------
-*State by State Maps
-*---------------------------------------------------------------------
-restore 
-drop if statename == "District Of Columbia"
-levelsof statename, local(holder)
-
-foreach state of local holder {
-	preserve
-	capture mkdir "$mua/analysis/figures/state_maps/`state'", pub
-	
-	keep if statename == "`state'"
-	g tot = _N
-	sum tot
-	g hold = 6
-	if `r(mean)'<6 {
-		replace hold = `r(mean)'-1
-	}
-	sum hold
-	xtile tmp=doc, nq(`r(mean)')
-	egen tmp2 = min(doc), by(tmp)
-	g cuts = .
-	forvalues i = 1/6 {
-			sum tmp2 if tmp == `i'
-			cap replace cuts = `r(mean)' in `i'
-	}
-	sum cuts if _n == 1
-	local bottom 	: di %5.1f `r(mean)'
-
-	sum cuts if _n == 6
-	local top 	: di %5.1f `r(mean)'
-	drop tot hold
-
-	foreach yr in 2007 2009 2011 2012 2013 2014 {
-		maptile doc if year == `yr' & statename == "`state'", ///
-			geography(county2000) ///
-			mapif(statename=="`state'") ///
-			legdecimals(1) ///
-			ndfcolor(maroon) ///
-			cutpoints(cuts) ///
-			rangecolor("`lightcolor'" "`darkcolor'") ///
-			revcolor ///
-			twopt( legend(lab(2 "<`bottom'") lab(8 ">`top'") pos(6) ring(1)) ///
-			xsize(12) ysize(10) ///
-			title(" "))
-		graph export "$mua/analysis/figures/state_maps/`state'/`state'_doc_dens_`yr'.pdf", replace
-	}
-	
-	*Pooled maps
-	collapse (mean) doc (first) statename [w=pop], by(county)
-	g tot = _N
-	sum tot
-	g hold = 6
-	if `r(mean)'<6 {
-		replace hold = `r(mean)'-1
-	}
-	sum hold
-	xtile tmp=doc, nq(`r(mean)')
-	egen tmp2 = min(doc), by(tmp)
-	g cuts = .
-	forvalues i = 1/6 {
-		sum tmp2 if tmp == `i'
-		cap replace cuts = `r(mean)' in `i'
-	}
-	sum cuts if _n == 1
-	local bottom 	: di %5.1f `r(mean)'
-
-	sum cuts if _n == 6
-	local top 	: di %5.1f `r(mean)'
-
-	
-		maptile doc if statename == "`state'", ///
-			geography(county2000) ///
-			mapif(statename=="`state'") ///
-			legdecimals(1) ///
-			ndfcolor(maroon) ///
-			cutpoints(cuts) ///
-			rangecolor("`lightcolor'" "`darkcolor'") ///
-			revcolor ///
-			twopt( legend(lab(2 "<`bottom'") lab(8 ">`top'") pos(6) ring(1)) ///
-			xsize(12) ysize(10) ///
-			title(" "))
-		graph export "$mua/analysis/figures/state_maps/`state'/`state'_doc_dens.pdf", replace
-	
-	
-	restore
-}

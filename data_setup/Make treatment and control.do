@@ -5,15 +5,16 @@ Purpose: Create list of treatment and control counties
 * Set directories
 return clear
 do `"`c(sysdir_personal)'profile.do"'
-global mua $dropbox/mua
+capture project, doinfo
+global root `r(pdir)'
 set more off 
 
 *---------------------------------------------------------------------
 *Create list of counties in treatment group
 *---------------------------------------------------------------------
 
-project, uses("$mua/data/derived_data/mua.dta")
-use "$mua/data/derived_data/mua.dta", clear
+project, uses("${root}/data/derived/mua.dta")
+use "${root}/data/derived/mua.dta", clear
 reg imuscore providersper1000population infantmortalityrate percentofpopulationwithincomesat percentageofpopulationage65andov 
 
 *Keep in sample counties
@@ -47,11 +48,12 @@ save `oursamp', replace
 *---------------------------------------------------------------------
 
 *Read in zip level mcd crosswalk
-project, uses("$mua/data/derived_data/cw_zip_mcd.dta")
-use $mua/data/derived_data/cw_zip_mcd, clear
+project, uses("${root}/data/derived/cw_zip_mcd.dta")
+use "${root}/data/derived/cw_zip_mcd", clear
 
 *Merge on counties by zip code
-merge 1:1 zip using $mua/data/raw_data/cw/cw_zip_county, nogen
+project, uses("${root}/data/derived/cw_zip_county.dta") preserve
+merge 1:1 zip using "${root}/data/derived/cw_zip_county", nogen
 
 *Get rid of duplicate zip rows
 drop zip
@@ -69,8 +71,8 @@ save `cw_mcd_cty', replace
 *Create list of rural places
 *---------------------------------------------------------------------
 
-project, uses("$mua/data/derived_data/mua.dta")
-use "$mua/data/derived_data/mua.dta", clear
+project, uses("${root}/data/derived/mua.dta")
+use "${root}/data/derived/mua.dta", clear
 
 *Take mode rural status by county (for those with CT designation)
 egen most = mode(ruralstatuscode), by(county)
@@ -85,7 +87,7 @@ save `rural', replace
 *Create list of counties in control group
 *---------------------------------------------------------------------
 
-use "$mua/data/derived_data/mua.dta", clear
+use "${root}/data/derived/mua.dta", clear
 
 *Create spine of rural counties with MUA designation
 keep if geo_type == "MCD" | geo_type == "SCTY"
@@ -108,8 +110,8 @@ save `toss_out', replace
 *Create base file
 *---------------------------------------------------------------------
 
-project, original("$mua/data/raw_data/covariates/cty_covars.dta")
-use $mua/data/raw_data/covariates/cty_covars, clear
+project, original("${root}/data/raw/cty_covars.dta")
+use "${root}/data/raw/cty_covars", clear
 drop causal* perm* 
 
 *Merge on treatment group
@@ -128,20 +130,20 @@ drop if _m == 2
 drop _m
 
 *Merge on Census % over 65
-project, uses("$mua/data/derived_data/cty_over_65_shares.dta") preserve
-merge 1:1 county using $mua/data/derived_data/cty_over_65_shares, keepusing(over*)
+project, uses("${root}/data/derived/cty_over_65_shares.dta") preserve
+merge 1:1 county using "${root}/data/derived/cty_over_65_shares", keepusing(over*)
 drop if _m == 2
 drop _m
 
 *Merge on population by county
-project, uses("$mua/data/derived_data/cty_pop.dta") preserve
-merge 1:1 county using $mua/data/derived_data/cty_pop, keepusing(pop*)
+project, uses("${root}/data/derived/cty_pop.dta") preserve
+merge 1:1 county using "${root}/data/derived/cty_pop", keepusing(pop*)
 drop if _m == 2
 drop _m
 
 *Merge on doctor counts by county
-project, original("$mua/data/raw_data/doctor_counts/npi_cty_07to14.dta") preserve
-merge 1:1 county using $mua/data/raw_data/doctor_counts/npi_cty_07to14, keepusing(npi_count*)
+project, original("${root}/data/raw/npi_cty_07to14.dta") preserve
+merge 1:1 county using "${root}/data/raw/npi_cty_07to14", keepusing(npi_count*)
 foreach yr in 2007 2009 2011 2012 2013 2014 {
 	g docs_1k_`yr' = npi_count`yr'/pop`yr'
 }
@@ -151,8 +153,8 @@ drop if _m == 2
 drop _m
 
 *Merge on infant mortality
-project, uses("$mua/data/derived_data/cty_infmort99to15.dta") preserve
-merge 1:1 county using $mua/data/derived_data/cty_infmort99to15
+project, uses("${root}/data/derived/cty_infmort99to15.dta") preserve
+merge 1:1 county using "${root}/data/derived/cty_infmort99to15"
 drop if _m == 2
 drop _m
 
@@ -222,5 +224,5 @@ tab treatment
 *Replace imputed infant mortality with missing
 replace cruderate = . if crude_imp == 1
 
-save $mua/data/derived_data/cty_basefile, replace
-project, creates("$mua/data/derived_data/cty_basefile.dta")
+save ${root}/data/derived/cty_basefile, replace
+project, creates("${root}/data/derived/cty_basefile.dta")

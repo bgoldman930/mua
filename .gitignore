@@ -3,3 +3,6 @@
 mua_files.dta
 mua_links.dta
 archive/
+data/
+results/
+*.dta
