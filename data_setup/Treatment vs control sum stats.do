@@ -5,7 +5,8 @@ Purpose: Analyze basic properties of our treatment, control, and dropped countie
 * Set directories
 return clear
 do `"`c(sysdir_personal)'profile.do"'
-global mua $dropbox/mua
+capture project, doinfo
+global root `r(pdir)'
 set more off 
 
 *Yellow to Blue map colors
@@ -16,11 +17,11 @@ local darkcolor "4 20 90"
 *Treatment vs. control
 *----------------------------------------------------------------------------
 
-project, uses("$mua/data/derived_data/cty_basefile.dta")
-use $mua/data/derived_data/cty_basefile, clear
+project, uses("${root}/data/derived/cty_basefile.dta")
+use "${root}/data/derived/cty_basefile.dta", clear
 
-project, original("$mua/data/raw_data/cw/county_list.dta") preserve
-merge 1:1 county using $mua/data/raw_data/cw/county_list, nogen
+project, original("${root}/data/raw/county_list.dta") preserve
+merge 1:1 county using "${root}/data/raw/county_list", nogen
 replace treatment = -1 if mi(treatment)
 
 *Standardize variables at the county level (unweighted)
@@ -44,7 +45,8 @@ graph hbar ///
 	bar(5, fcolor(gs6) fintensity(inten60) lcolor(gs6) lwidth(medium) lpattern(solid)) ///
 	legend(order(1 "Share Poor" 2 "Share 65+" 3 "# Doctors" 4 "Inf. Mort." 5 "Pop. Dens.") ///
 		size(*.7) row(1))
-graph export $mua/analysis/figures/samp_compare.pdf, replace
+graph export "${root}/results/figures/samp_compare.pdf", replace
+project, creates("${root}/results/figures/samp_compare.pdf") preserve
 
 *Map of samples
 maptile treatment, ///
@@ -56,5 +58,6 @@ maptile treatment, ///
 	propcolor ///
 	rangecolor("`lightcolor'" "`darkcolor'") ///
 	twopt(legend(order(4 "Treatment" 3 "Control" 2 "Omitted")) title(" "))
-graph export $mua/analysis/figures/samp_map.pdf, replace
+graph export "${root}/results/figures/samp_map.pdf", replace
+project, creates("${root}/results/figures/samp_map.pdf") preserve
 

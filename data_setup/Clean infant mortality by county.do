@@ -5,16 +5,17 @@ Purpose: Read in raw CDC data and produce infant mortality (averaged over 1999-2
 * Set directories
 return clear
 do `"`c(sysdir_personal)'profile.do"'
-global mua $dropbox/mua
+capture project, doinfo
+global root `r(pdir)'
 set more off 
 
 
-project, original("$mua/data/raw_data/covariates/infmort/infmort99to15.txt")
-import delimited "$mua/data/raw_data/covariates/infmort/infmort99to15.txt", clear
+project, original("${root}/data/raw/infmort99to15.txt")
+import delimited "${root}/data/raw/infmort99to15.txt", clear
 keep countycode cruderate
 drop if countycode==.
 replace cruderate="" if cruderate=="Unreliable"
 destring cruderate, replace
 rename countycode county
-save "$mua/data/derived_data/cty_infmort99to15", replace
-project, creates("$mua/data/derived_data/cty_infmort99to15.dta")
+save "${root}/data/derived/cty_infmort99to15", replace
+project, creates("${root}/data/derived/cty_infmort99to15.dta")
