@@ -8,6 +8,12 @@ project, doinfo
 local pdir=r(pdir)
 do `"`c(sysdir_personal)'profile.do"'
 
+*Make directories
+capture mkdir "`pdir'/results/figures"
+capture mkdir "`pdir'/results/tables"
+capture mkdir "`pdir'/data/raw"
+capture mkdir "`pdir'/data/derived"
+
 *------------------------------------------------------------------------------
 *Outside data cleaning
 *------------------------------------------------------------------------------
