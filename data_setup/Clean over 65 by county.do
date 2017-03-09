@@ -14,8 +14,11 @@ project, original ("${root}/data/raw/co-est00int-agesex-5yr.csv")
 import delimited "${root}/data/raw/co-est00int-agesex-5yr.csv", ///
 	stringcols(3) encoding(ISO-8859-1) clear
 	
+*Drop rows with totals
+drop if agegrp == 0 | sex == 0
+	
 *Generate county fips codes for matching
-tostring state, gen (st)
+tostring state, gen(st)
 g cfips = st+county
 drop county 
 g county = real(cfips)
