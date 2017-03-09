@@ -27,8 +27,8 @@ Link: https://www.census.gov/data/datasets/time-series/demo/popest/intercensal-2
 *county_population.dta
 ****************************
 
-Description: Population by county*year
-Link: ??
+Description: Population by county*year from NBER
+Link: http://www.nber.org/data/census-intercensal-county-population.html
 
 ****************************
 *mua_det.csv
