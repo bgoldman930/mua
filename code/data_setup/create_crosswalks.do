@@ -1,13 +1,17 @@
-/*
+/***
 Purpose: Create zip-X crosswalks, X=county, mcd, ct
-*/
+***/
 
 * Set directories
 return clear
-do `"`c(sysdir_personal)'profile.do"'
 capture project, doinfo
-global root `r(pdir)'
+if (_rc==0 & !mi(r(pname))) global root `r(pdir)'  // using -project-
+else {  // running directly
+	if ("${mua}"=="") do `"`c(sysdir_personal)'profile.do"'
+	do "${mua}/code/set_environment.do"
+}
 set more off 
+
 
 * zip-county cw
 ** assign to each zip the county in which the majority of the zip's pop lives:
