@@ -1,12 +1,15 @@
-/*
+/***
 Purpose: Create designation year X mo dataset for MUAs and HPSAs
-*/
+***/
 
 * Set directories
 return clear
-do `"`c(sysdir_personal)'profile.do"'
 capture project, doinfo
-global root `r(pdir)'
+if (_rc==0 & !mi(r(pname))) global root `r(pdir)'  // using -project-
+else {  // running directly
+	if ("${mua}"=="") do `"`c(sysdir_personal)'profile.do"'
+	do "${mua}/code/set_environment.do"
+}
 set more off 
 
 

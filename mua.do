@@ -18,27 +18,27 @@ capture mkdir "`pdir'/data/derived"
 *Outside data cleaning
 *------------------------------------------------------------------------------
 
-project, do("data_setup/Clean over 65 by county.do")
-project, do("data_setup/Clean population by county.do")
-project, do("data_setup/Clean infant mortality by county.do")
-project, do("data_setup/Clean raw HRSA data.do")
-project, do("data_setup/Create crosswalks.do")
+project, do("code/data_setup/clean_over_65_by_county.do")
+project, do("code/data_setup/clean_population_by_county.do")
+project, do("code/data_setup/clean_infant_mortality_by_county.do")
+project, do("code/data_setup/clean_raw_hrsa_data.do")
+project, do("code/data_setup/create_crosswalks.do")
 
 *------------------------------------------------------------------------------
 *Construct core county level sample
 *------------------------------------------------------------------------------
 
-project, do("data_setup/Make treatment and control.do")
+project, do("code/data_setup/make_treatment_and_control.do")
 
 *------------------------------------------------------------------------------
 *Analyze demographics of treatment and control
 *------------------------------------------------------------------------------
 
-project, do("data_setup/Treatment vs control sum stats.do")
+project, do("code/data_setup/treatment_vs_control_sum_stats.do")
 
 *------------------------------------------------------------------------------
 *Results
 *------------------------------------------------------------------------------
 
-project, do("analysis/Doctor event studies.do")
+project, do("code/analysis/doctor_event_studies.do")
 
