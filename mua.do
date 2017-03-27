@@ -9,10 +9,10 @@ local pdir=r(pdir)
 do `"`c(sysdir_personal)'profile.do"'
 
 *Make directories
-capture mkdir "`pdir'/results/figures"
-capture mkdir "`pdir'/results/tables"
-capture mkdir "`pdir'/data/raw"
-capture mkdir "`pdir'/data/derived"
+capture mkdir "results/figures"
+capture mkdir "results/tables"
+capture mkdir "data/raw"
+capture mkdir "data/derived"
 
 *------------------------------------------------------------------------------
 *Outside data cleaning
