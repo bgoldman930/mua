@@ -15,30 +15,12 @@ capture mkdir "data/raw"
 capture mkdir "data/derived"
 
 *------------------------------------------------------------------------------
-*Outside data cleaning
+*Clean MUA data
 *------------------------------------------------------------------------------
 
-project, do("code/data_setup/clean_over_65_by_county.do")
-project, do("code/data_setup/clean_population_by_county.do")
-project, do("code/data_setup/clean_infant_mortality_by_county.do")
 project, do("code/data_setup/clean_raw_hrsa_data.do")
-project, do("code/data_setup/create_crosswalks.do")
-
-*------------------------------------------------------------------------------
-*Construct core county level sample
-*------------------------------------------------------------------------------
-
-project, do("code/data_setup/make_treatment_and_control.do")
-
-*------------------------------------------------------------------------------
-*Analyze demographics of treatment and control
-*------------------------------------------------------------------------------
-
-project, do("code/data_setup/treatment_vs_control_sum_stats.do")
-
-*------------------------------------------------------------------------------
-*Results
-*------------------------------------------------------------------------------
-
-project, do("code/analysis/doctor_event_studies.do")
-
+project, do("code/data_setup/clean_crosswalks.do")
+project, do("code/data_setup/build_mua_cty.do")
+project, do("code/data_setup/build_mua_mcd.do")
+project, do("code/data_setup/build_mua_ct.do")
+project, do("code/data_setup/make_mua_assigment_maps.do")

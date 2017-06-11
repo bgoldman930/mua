@@ -1,6 +1,26 @@
 /***
 Purpose: List sources for raw data
 
+****************************
+*zcta_tract_rel_10.txt
+****************************
+
+Description: 2010 census tract to zcta crosswalk
+Link: https://www.census.gov/geo/maps-data/data/zcta_rel_download.html
+
+****************************
+*zcta_cousub_rel_10.txt
+****************************
+
+Description: 2010 census tract to county subdivision crosswalk
+Link: https://www.census.gov/geo/maps-data/data/zcta_rel_download.html
+
+****************************
+*zcta_county_rel_10.txt
+****************************
+
+Description: 2010 census tract to county crosswalk
+Link: https://www.census.gov/geo/maps-data/data/zcta_rel_download.html
 
 ****************************
 *infmort99to15.txt
