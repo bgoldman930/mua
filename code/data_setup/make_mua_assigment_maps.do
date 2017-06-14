@@ -18,7 +18,7 @@ set more off
 
 clear
 foreach geo in cty mcd ct {
-	project, uses("${root}/data/derived/mua_`geo'.dta")
+	project, uses("${root}/data/derived/mua_`geo'.dta") preserve 
 	append using "${root}/data/derived/mua_`geo'.dta"
 }
 
@@ -35,16 +35,17 @@ drop small
 *---------------------------------------------------------------------
 
 rename zcta5 zip5
-forvalues yr = 1975(5)2015 {
+forvalues yr = 1980(5)2015 {
 	g mua_`yr' = (year<=`yr' & zpoppct>=80 & ~mi(zpoppct))
 	maptile mua_`yr', ///
 		geo(zip5) ///
-		rangecolor(white dkorange) ///
+		rangecolor(white red) ///
 		ndfcolor(white) ///
-		stateoutline(*.5) ///
+		stateoutline(*.35) ///
+		cutvalues(0 0.001 0.9999 1) ///
 		twopt( ///
 		legend(off) ///
 		title("MUA Designation - `yr'")) 
-	graph export "${root}/results/figures/mua_`yr'.png", replace
+	graph export "${root}/results/figures/mua_`yr'.png", width(2400) replace
 	project, creates("${root}/results/figures/mua_`yr'.png") preserve
 }
