@@ -1,5 +1,5 @@
 /***
-Purpose: Create designation year X mo dataset for MUAs and HPSAs
+Purpose: Clean raw MUA data
 ***/
 
 * Set directories
@@ -18,16 +18,17 @@ set more off
 ** note this dataset contains both MUAs and MUPs; can drop MUPs later if necessary
 project, original("${root}/data/raw/mua_det.csv")
 insheet using "${root}/data/raw/mua_det.csv", comma clear
-gen year=substr(v53,1,4)
-destring year, replace
-gen month=substr(v53,6,2)
-destring month, replace
-order year month
-sort year month
+g date = date(v53, "YMD")
+format date %tdMon-YY
+g year = year(date)
+g month = month(date)
+g day = day(date)
+order date year month day
+sort date
 
 * Note an MUA can be a
 ** minor civil division (MCD)
-** state county (SCTY) - the majority
+** single county (SCTY)
 ** census tract (CT)
 * Organize all three geocodes:
 rename v55 geo_type
