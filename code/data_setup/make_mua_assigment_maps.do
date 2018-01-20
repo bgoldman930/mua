@@ -46,6 +46,6 @@ forvalues yr = 1980(5)2015 {
 		twopt( ///
 		legend(off) ///
 		title("MUA Designation - `yr'")) 
-	graph export "${root}/results/figures/mua_`yr'.png", width(2400) replace
+	graph export "${root}/results/figures/mua_`yr'.png", width(1000) replace
 	project, creates("${root}/results/figures/mua_`yr'.png") preserve
 }

@@ -6,11 +6,14 @@ Project began January 2017: Kaveh Danesh and Benny Goldman
 set more off
 project, doinfo
 local pdir=r(pdir)
+if (_rc==0 & !mi(r(pname))) global root `r(pdir)'
 do `"`c(sysdir_personal)'profile.do"'
 
 *Make directories
+capture mkdir "results"
 capture mkdir "results/figures"
 capture mkdir "results/tables"
+capture mkdir "data"
 capture mkdir "data/raw"
 capture mkdir "data/derived"
 
