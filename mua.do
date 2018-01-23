@@ -16,14 +16,19 @@ capture mkdir "results/tables"
 capture mkdir "data"
 capture mkdir "data/raw"
 capture mkdir "data/derived"
+capture mkdir "data/covariates"
+
 
 *------------------------------------------------------------------------------
 *Clean MUA data
 *------------------------------------------------------------------------------
 
-project, do("code/data_setup/clean_raw_hrsa_data.do")
-project, do("code/data_setup/clean_crosswalks.do")
-project, do("code/data_setup/build_mua_cty.do")
-project, do("code/data_setup/build_mua_mcd.do")
-project, do("code/data_setup/build_mua_ct.do")
-project, do("code/data_setup/make_mua_assigment_maps.do")
+*Covariates
+project, do("code/covariates/county_infant_mortality.do")
+project, do("code/covariates/county_population.do")
+project, do("code/covariates/tract_covariates.do")
+project, do("code/covariates/ahrf.do")
+
+*MUA Data setup
+project, do("code/data_setup/clean_raw_mua_data.do")
+
