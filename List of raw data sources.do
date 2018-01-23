@@ -2,6 +2,38 @@
 Purpose: List sources for raw data
 
 ****************************
+*AHRF - Area Health Resource File from HRSA
+****************************
+
+Description: County panel on health variables, physicians, and other vars
+Link: https://datawarehouse.hrsa.gov/data/datadownload.aspx#MainContent_ctl00_gvDD_lbl_dd_topic_ttl_0
+Notes:	Downloaded the SAS format and then converted to Stata on Census server
+
+****************************
+*Pooled Mortality yyyy-yyyy.txt
+****************************
+	
+Description: Infant mortality by county with broad year groupings (b/c of suppresion)
+Link: https://wonder.cdc.gov/mortSQL.html
+Steps:
+	1. Visit link and choose years of interest
+	2. From dropdown choose county 
+	3. Select infant age ranges and then all ages	
+
+****************************
+*Compressed Mortality yyyy-yyyy.txt
+****************************
+	
+Description: Infant mortality by county and year
+Link: https://wonder.cdc.gov/mortSQL.html
+Steps:
+	1. Visit link and choose years of interest
+	2. From dropdown choose county 
+	3. Also choose year
+	4. Select infant age ranges and then all ages
+Notes: These produce the compressed mortality files for infants and appear to be unmasked!
+	
+****************************
 *zcta_tract_rel_10.txt
 ****************************
 
