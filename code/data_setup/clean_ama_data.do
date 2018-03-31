@@ -1,4 +1,4 @@
-cd /Users/Kaveh/Dropbox/mua/raw/ama
+global root "/Users/benjamingoldman/GitHub/mua"
 
 set more off 
 
@@ -6,7 +6,7 @@ set more off
 
 * load in each annual file and clean
 foreach y of numlist 2000 2003(2)2015 {
-	insheet using QUO-09149-Y3W5B2#1_`y'.csv, comma clear
+	insheet using "${root}/data/raw/ama/QUO-09149-Y3W5B2#1_`y'.csv", comma clear
 	drop if censustract=="Total"
 	rename v??? tot
 	gen year=`y'
@@ -32,14 +32,15 @@ rename censustract tract
 * save
 order tract year
 sort tract year
-save ama_tract_data, replace
+compress
+save "${root}/data/derived/ama_tract_data", replace
 
 * CLEAN COUNTY FILE
 
 * load in each annual file and clean
 set more off
 forvalues y = 1991(2)1999 {
-	insheet using QUO-09149-Y3W5B2#2_`y'.csv, comma clear
+	insheet using "${root}/data/raw/ama/QUO-09149-Y3W5B2#2_`y'.csv", comma clear
 	drop if fipscounty=="TOTAL" | fipscounty=="Total"
 	rename v??? tot
 	gen year=`y'
@@ -86,5 +87,6 @@ keep county year tot totpc
 
 * save
 sort county year
-save ama_county_data, replace
+compress
+save "${root}/data/derived/ama_county_data", replace
 

@@ -114,7 +114,7 @@ foreach y in 96 01 02 03 04 05 06 07 08 09 10 {
 foreach y in 05 10 11 12 13 14 15 {
 	if `y'>18 local stub=1900+`y'
 	else local stub=2000+`y'
-	rename f13223`y' poor_share_`stub'
+	rename f13223`y' poor_pop_`stub'
 }
 
 *Clean and output
@@ -122,12 +122,12 @@ keep	state				county ///
 		pop_*				total_mds* 			black_* ///
 		white_*				seniors_*			median_* ///
 		incarcerated_*		nursing_*			low_wgt_* ///
-		inf_mort_*			poor_share_*
+		inf_mort_*			poor_pop_*
 order	state				county ///
 		pop_*				total_mds* 			black_* ///
 		white_*				seniors_*			median_* ///
 		incarcerated_*		nursing_*			low_wgt_* ///
-		inf_mort_*			poor_share_*
+		inf_mort_*			poor_pop_*
 compress
 save "${root}/data/covariates/ahrf_covariates.dta", replace
 project, creates("${root}/data/covariates/ahrf_covariates.dta")

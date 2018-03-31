@@ -1,5 +1,5 @@
 set more off
-global root = "/Users/Kaveh/GitHub/mua"
+global root "$git/mua"
 
 * load tract covariates
 use ${root}/data/covariates/tract_covariates, clear
