@@ -108,5 +108,5 @@ maptile _b_year, ///
 	stateoutline(*.28) ///
 	ndfcolor(gs11) ///
 	twopt(legend(lab(9 ">`big'") lab(2 "<`small'") size(*.8)) title(" "))
-graph export "${root}/results/figures/docs_dens_trends.pdf", replace
+graph export "${root}/results/figures/docs_dens_trends.png", width(1500) replace
 drop hold 

@@ -8,7 +8,7 @@ local darkcolor "4 20 90"
 
 *Load in the county level AHRF file
 use "${root}/data/covariates/ahrf_covariates", clear
-keep state county total_mds_2010 poor_pop_2010 pop_2010
+keep state county total_mds_* poor_pop_* pop_*
 
 *Combine county ID variable
 tostring county, format(%03.0f) replace
@@ -17,29 +17,32 @@ replace county=state+county
 destring county, replace
 
 *Generate doctors per person
-g docs_pers=1000*(total_mds_2010/pop_2010)
-g docs_poor_pers=1000*(total_mds_2010/poor_pop_2010)
+foreach y in 2000 2010 {
+	g docs_pers_`y'=1000*(total_mds_`y'/pop_`y')
+}
 
 *Correlation between populations and doctors
 corr total_mds_2010 pop_2010
 di "Correlation between population and doctor counts: `=round(`r(rho)', 0.01)'"
 
 *Doctors per person
-xtile hold = docs_pers, nquantiles(8)
-sum docs_pers if hold == 8
-local big 		: di %2.1f `r(min)'
-sum docs_pers if hold == 1
-local small		: di %2.1f `r(max)'
-maptile docs_pers, ///
-	n(8) ///
-	geography(county2000) ///
-	legdecimals(1) ///
-	rangecolor("`lightcolor'" "`darkcolor'") ///
-	stateoutline(*.28) ///
-	ndfcolor(gs11) ///
-	twopt(legend(lab(9 ">`big'") lab(2 "<`small'")) title(" "))
-graph export "${root}/results/figures/docs_dens.pdf", replace
-drop hold 
+foreach y in 2000 2010 {
+	xtile hold = docs_pers_`y', nquantiles(8)
+	sum docs_pers_`y' if hold == 8
+	local big 		: di %2.1f `r(min)'
+	sum docs_pers_`y' if hold == 1
+	local small		: di %2.1f `r(max)'
+	maptile docs_pers_`y', ///
+		n(8) ///
+		geography(county2000) ///
+		legdecimals(1) ///
+		rangecolor("`lightcolor'" "`darkcolor'") ///
+		stateoutline(*.28) ///
+		ndfcolor(gs11) ///
+		twopt(legend(lab(9 ">`big'") lab(2 "<`small'")) title(" "))
+	graph export "${root}/results/figures/docs_dens_`y'.png", width(1500) replace
+	drop hold 
+}
 
 *Statistics for slides
 

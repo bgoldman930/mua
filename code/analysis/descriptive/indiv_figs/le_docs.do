@@ -12,7 +12,7 @@ use "${root}/data/raw/covariates_tract_wide", clear
 rename (state10 county10 tract10) (state county tract)
 
 *Collapse to the county level
-collapse (mean) ${rhs} poor_share2000 (rawsum) pop2010 [w=pop2010], by(state county)
+collapse (mean) ${rhs} (rawsum) pop2010 [w=pop2010], by(state county)
 
 *Merge on the 2010 doctor countrs from the AHRF
 merge 1:1 state county using "${root}/data/covariates/ahrf_covariates", ///

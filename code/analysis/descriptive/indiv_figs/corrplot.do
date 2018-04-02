@@ -7,7 +7,7 @@ global rhs ///
 	share_black2010 		pct_married2010			pct_foreign2010 ///
 	share_seniors2010		frac_coll_plus2010		median_value2010 ///
 	hhinc_mean2010			poor_share2010		
-local rhs_count : word count ${x}
+local rhs_count : word count ${rhs}
 
 use "${root}/data/raw/covariates_tract_wide", clear
 rename (state10 county10 tract10) (state county tract)
