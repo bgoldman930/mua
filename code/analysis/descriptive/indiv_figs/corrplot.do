@@ -110,7 +110,7 @@ twoway ///
 	ytitle("") ///
 	xlabel(0(0.2)1, grid gmax) ///
 	xtitle("Magnitude of Correlation") ///
-	title(" ") ///
+	title("Doctor Density and Local Characteristics") ///
 	legend(order(6 "County")) 
 graph export "${root}/results/figures/corr_plot_a.pdf", replace
 
@@ -137,6 +137,6 @@ twoway ///
 	ytitle("") ///
 	xlabel(0(0.2)1, grid gmax) ///
 	xtitle("Magnitude of Correlation") ///
-	title(" ") ///
+	title("Doctor Density and Local Characteristics") ///
 	legend(order(5 "Tract" 6 "County")) 
 graph export "${root}/results/figures/corr_plot_b.pdf", replace

@@ -21,7 +21,7 @@ binscatter docs_pers poor_share2010 [w=pop2010], ///
 	lcolor(navy) ///
 	xtitle("Fraction Below Poverty Line") ///
 	ytitle("Doctors per 1,000 Residents") ///
-	title(" ") ///
+	title("Doctor Density and County Level Poverty Rates - 2010") ///
 	ylabel(1.5(1.5)6, gmax) yscale(range(1.5 6.3)) 
 graph export "${root}/results/figures/bin_docs_poor_cty.pdf", replace
 
@@ -53,6 +53,6 @@ su docs_pers [w=pop2010], d
 binscatter docs_pers poor_share2010 [w=pop2010] if docs_pers>`r(p1)' & docs_pers<`r(p99)', linetype(none) ///
 	xtitle("Fraction Below Poverty Line") ///
 	ytitle("Doctors per 1,000 Residents") ///
-	title(" ") ///
+	title("Doctor Density and Tract Level Poverty Rates - 2010") ///
 	ylabel(1.5(1.5)6, gmax) yscale(range(1.5 6.3)) 
 graph export "${root}/results/figures/bin_docs_poor_tract.pdf", replace

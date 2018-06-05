@@ -29,51 +29,31 @@ forvalues i=1/4 {
 	drop esti_*
 }
 
-*Bar graph of top places of LE for the poor
-gsort -le_q1
-replace le_q1=le_q1-70
-graph hbar (asis) le_q1 if _n<=10, ///
-	over(name, sort(le_q1) descending) ///
-	bar(1, fcolor(midgreen%75) lcolor(midgreen) lwidth(*1.25)) ///
-	ylabel(0 "70" 5 "75" 10 "80" 15 "85", gmax) ///
-	subtitle("Top 10") ///
-	title(" ") ///
-	name(g1, replace)
-	
-sort le_q1
-graph hbar (asis) le_q1 if _n<=10, ///
-	over(name, sort(le_q1) descending) ///
-	bar(1, fcolor(red%75) lcolor(red) lwidth(*1.25)) ///
-	subtitle("Bottom 10") ///
-	ylabel(0 "70" 5 "75" 10 "80" 15 "85", gmax) ///
-	title(" ") ///
-	name(g2, replace)
-	
-graph combine g1 g2
-graph export "${root}/results/figures/rank_le_q1.pdf", replace
+*Bar graph for doc_dens vs. low life expectancy doctor density
 
-*** Repeat for bottom quartile places ***
+*Limit to counties with non-missing LE data
+keep if ~mi(le_q1)
 
-su le_q1, d
-keep if le_q1<`r(p25)'
-
-*Bar graph of top places
-gsort -docs_pers
-graph hbar (asis) docs_pers if _n<=10, ///
-	over(name, sort(docs_pers) descending) ///
-	bar(1, fcolor(midgreen%75) lcolor(midgreen) lwidth(*1.25)) ///
-	subtitle("Top 10") ///
-	title(" ") ///
-	name(g1, replace)
-	
 sort docs_pers
 graph hbar (asis) docs_pers if _n<=10, ///
 	over(name, sort(docs_pers) descending) ///
-	bar(1, fcolor(red%75) lcolor(red) lwidth(*1.25)) ///
-	subtitle("Bottom 10") ///
-	ylabel(0(.2)1, gmax) ///
+	bar(1, fcolor(black%75) lcolor(black) lwidth(*1.25)) ///
+	ylabel(0(.1).5, gmax) ///
+	subtitle("All Counties") ///
+	title(" ") ///
+	name(g1, replace)
+	
+su le_q1 [w=pop_2015], d
+keep if le_q1<`r(p25)'
+sort docs_pers
+graph hbar (asis) docs_pers if _n<=10, ///
+	over(name, sort(docs_pers) descending) ///
+	bar(1, fcolor(dkorange%75) lcolor(dkorange) lwidth(*1.25)) ///
+	ylabel(0(.1).5, gmax) ///
+	subtitle("Low Life Expectancy") ///
 	title(" ") ///
 	name(g2, replace)
 	
-graph combine g1 g2
-graph export "${root}/results/figures/rank_docs_low_le.pdf", replace
+graph combine g1 g2, xcommon ///
+	title("Doctor Density County Rankings") 
+graph export "${root}/results/figures/rank_docs_all_le.pdf", replace

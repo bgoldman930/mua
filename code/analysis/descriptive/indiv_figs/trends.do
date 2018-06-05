@@ -58,7 +58,7 @@ binscatter docs_pers year [w=pop], discrete ///
 	xtitle("Year") ///
 	xlabel(2000(5)2015) xmtick(##5) ///
 	ylabel(2.9(.2)3.5, gmax) ///
-	title(" ") 
+	title("National Trend in Doctor Density") 
 graph export "${root}/results/figures/bin_docs_trend.pdf", replace
 
 
@@ -75,7 +75,7 @@ graph export "${root}/results/figures/bin_docs_rural_trend.pdf", replace
 
 
 binscatter docs_pers year [w=pop], discrete by(hi_docs) ///
-	lcolor(black dkorange) mcolor(black dkorange) ///
+	lcolor(dkorange black) mcolor(dkorange black) ///
 	ytitle("Doctors per 1,000 Residents") ///
 	xtitle("Year") ///
 	ylabel(0(2)8, gmax) ///

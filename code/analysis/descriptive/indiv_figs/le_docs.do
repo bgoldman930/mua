@@ -69,7 +69,7 @@ binscatter le docs_pers [w=pop2010], ///
 	xtitle("Doctors per 1,000 Residents") ///
 	ytitle("Life Expectancy") ///
 	ylabel(, gmax) ///
-	title(" ") ///
+	title("Doctor Density in 2010 and Life Expectancy 2001-2014") ///
 	text (82.7 7 "Slope: 0`=round(_b[docs_pers], .001)' (0`=round(_se[docs_pers], .001)')")
 graph export "${root}/results/figures/bin_le_docs.pdf", replace
 
@@ -84,12 +84,12 @@ local se_4	: di %5.3f _se[docs_pers]
 
 
 binscatter le_q1 le_q4 docs_pers [w=pop2010], ///
-	lcolor(black dkorange) mcolor(black dkorange) ///
+	lcolor(dkorange black) mcolor(dkorange black) ///
 	xtitle("Doctors per 1,000 Residents") ///
 	ytitle("Life Expectancy") ///
 	ylabel(, gmax) ///
 	title(" ") ///
 	legend(pos(3) region(fcolor(none)) ring(0) col(1) ///
-		order(1 "1st Quartile - Slope: 0`=round(`b_1', .001)' (0`=round(`se_1', .001)')" ///
-		2 "4th Quartile - Slope: 0`=round(`b_4', .001)' (0`=round(`se_4', .001)')"))
+		order(2 "4th Quartile - Slope: 0`=round(`b_4', .001)' (0`=round(`se_4', .001)')" ///
+		1 "1st Quartile - Slope: 0`=round(`b_1', .001)' (0`=round(`se_1', .001)')"))
 graph export "${root}/results/figures/bin_le_inc_docs.pdf", replace

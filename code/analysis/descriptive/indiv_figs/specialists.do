@@ -121,6 +121,6 @@ twoway ///
 	ytitle("") ///
 	xlabel(0(0.2)1, grid gmax) ///
 	xtitle("Magnitude of Correlation") ///
-	title(" ") ///
+	title("Specialist Density and Local Characteristics") ///
 	legend(order(5 "Primary Care" 6 "Specialists")) 
 graph export "${root}/results/figures/spec_corr_plot.pdf", replace
