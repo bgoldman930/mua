@@ -13,8 +13,7 @@ local rhs_count : word count ${rhs}
 local lightcolor "236 248 177"
 local darkcolor "4 20 90"
 
-use "${root}/data/raw/covariates_tract_wide", clear
-rename (state10 county10 tract10) (state county tract)
+use "${root}/data/covariates/tract_covariates_wide", clear
 
 *Collapse to the county level
 collapse (mean) ${rhs} (rawsum) pop2010 [w=pop2010], by(state county)
@@ -60,7 +59,7 @@ foreach y in 2010 {
 		stateoutline(*.28) ///
 		ndfcolor(gs11) ///
 		twopt(legend(lab(9 ">`big'") lab(2 "<`small'")) title(" "))
-	graph export "${root}/results/figures/spec_dens_`y'.png", width(1500) replace
+	graph export "${root}/results/figures/spec_dens_`y'.png", width(500) replace
 	drop hold 
 }
 

@@ -3,32 +3,51 @@ Name: Master do-file for the MUA project
 Project began January 2017: Kaveh Danesh and Benny Goldman 
 ***/
 
+drop _all
 set more off
-project, doinfo
-local pdir=r(pdir)
-if (_rc==0 & !mi(r(pname))) global root `r(pdir)'
-do `"`c(sysdir_personal)'profile.do"'
-
-*Make directories
-capture mkdir "results"
-capture mkdir "results/figures"
-capture mkdir "results/tables"
-capture mkdir "data"
-capture mkdir "data/raw"
-capture mkdir "data/derived"
-capture mkdir "data/covariates"
-
+global root "$git/mua"
 
 *------------------------------------------------------------------------------
-*Clean MUA data
+*Create and clean directories
+*------------------------------------------------------------------------------
+
+*Clean out the results and derived data directories
+capture shell rm -r "${root}/results"
+capture shell rm -r "${root}/data/derived"
+capture shell rm -r "${root}/data/covariates"
+
+*Make directories
+capture mkdir "${root}/results"
+capture mkdir "${root}/results/figures"
+capture mkdir "${root}/results/tables"
+capture mkdir "${root}/data/derived"
+capture mkdir "${root}/data/covariates"
+
+*------------------------------------------------------------------------------
+*Build code
 *------------------------------------------------------------------------------
 
 *Covariates
-project, do("code/covariates/county_infant_mortality.do")
-project, do("code/covariates/county_population.do")
-project, do("code/covariates/tract_covariates.do")
-project, do("code/covariates/ahrf.do")
+do "${root}/code/covariates/county_infant_mortality.do"
+do "${root}/code/covariates/county_population.do"
+do "${root}/code/covariates/tract_covariates.do"
+do "${root}/code/covariates/ahrf.do"
 
-*MUA Data setup
-project, do("code/data_setup/clean_raw_mua_data.do")
+*Data setup
+do "${root}/code/data_setup/clean_raw_mua_data.do"
+do "${root}/code/data_setup/clean_ama_data.do" 
+do "${root}/code/data_setup/create_covariates_panel.do"
+do "${root}/code/data_setup/create_match_panel.do"
+*do "${root}/code/data_setup/predict_imu_scores.do" // XX This doesn't appear to produce output
+
+*Descriptive statistics
+do "${root}/code/descriptive/maps.do"
+do "${root}/code/descriptive/corrplot.do"
+do "${root}/code/descriptive/bin_pov.do"
+do "${root}/code/descriptive/le_docs.do"
+do "${root}/code/descriptive/trends.do"
+do "${root}/code/descriptive/ranks.do"
+do "${root}/code/descriptive/specialists.do"
+
+
 

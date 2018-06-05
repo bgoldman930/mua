@@ -9,8 +9,7 @@ global rhs ///
 	hhinc_mean2010			poor_share2010			poor_share2000
 local rhs_count : word count ${x}
 
-use "${root}/data/raw/covariates_tract_wide", clear
-rename (state10 county10 tract10) (state county tract)
+use "${root}/data/covariates/tract_covariates_wide", clear
 
 *Collapse to the county level
 collapse (mean) ${rhs} (rawsum) pop2010 [w=pop2010], by(state county)
@@ -108,5 +107,5 @@ maptile _b_year, ///
 	stateoutline(*.28) ///
 	ndfcolor(gs11) ///
 	twopt(legend(lab(9 ">`big'") lab(2 "<`small'") size(*.8)) title(" "))
-graph export "${root}/results/figures/docs_dens_trends.png", width(1500) replace
+graph export "${root}/results/figures/docs_dens_trends.png", width(500) replace
 drop hold 

@@ -2,24 +2,14 @@
 Purpose: Pull useful variables from AHRF
 ***/
 
-* Set directories
-return clear
-capture project, doinfo
-if (_rc==0 & !mi(r(pname))) global root `r(pdir)'  // using -project-
-else {  // running directly
-	if ("${mua}"=="") do `"`c(sysdir_personal)'profile.do"'
-	do "${mua}/code/set_environment.do"
-}
-set more off 
-
-
 *---------------------------------------------------------------------
 *Read in raw AHRF and keep variables of interest
 *---------------------------------------------------------------------
 
+clear
 clear matrix
+clear mata
 set maxvar 10000
-project, original("${root}/data/raw/ahrf.dta")
 use "${root}/data/raw/ahrf.dta", clear
 
 *Describe variables in a log
@@ -130,4 +120,3 @@ order	state				county ///
 		inf_mort_*			poor_pop_*
 compress
 save "${root}/data/covariates/ahrf_covariates.dta", replace
-project, creates("${root}/data/covariates/ahrf_covariates.dta")

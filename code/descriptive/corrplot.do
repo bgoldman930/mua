@@ -9,8 +9,7 @@ global rhs ///
 	hhinc_mean2010			poor_share2010		
 local rhs_count : word count ${rhs}
 
-use "${root}/data/raw/covariates_tract_wide", clear
-rename (state10 county10 tract10) (state county tract)
+use "${root}/data/covariates/tract_covariates_wide", clear
 
 *Collapse to the county level
 collapse (mean) ${rhs} (rawsum) pop2010 [w=pop2010], by(state county)
@@ -56,8 +55,7 @@ collapse (mean) tot, by(state county tract)
 tempfile docs
 save `docs'
 
-use "${root}/data/raw/covariates_tract_wide", clear
-rename (state10 county10 tract10) (state county tract)
+use "${root}/data/covariates/tract_covariates_wide", clear
 
 *Merge on the 2010 doctor countrs from the AMA data
 merge 1:1 state county tract using `docs', ///

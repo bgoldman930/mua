@@ -1,9 +1,8 @@
-global root "/Users/benjamingoldman/GitHub/mua"
+/***
+Purpose: Clean raw AMA data
+***/
 
-set more off 
-
-* CLEAN TRACT DATA
-
+* tract data
 * load in each annual file and clean
 foreach y of numlist 2000 2003(2)2015 {
 	insheet using "${root}/data/raw/ama/QUO-09149-Y3W5B2#1_`y'.csv", comma clear
@@ -71,7 +70,7 @@ tempfile tempcty
 save `tempcty'
 
 * load tract data (2000-2015) and collapse to county level
-use ama_tract_data, clear
+use "${root}/data/derived/ama_tract_data", clear
 gen county = substr(tract, 1, 5)
 drop tract
 order county year

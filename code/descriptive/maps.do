@@ -40,7 +40,7 @@ foreach y in 2000 2010 {
 		stateoutline(*.28) ///
 		ndfcolor(gs11) ///
 		twopt(legend(lab(9 ">`big'") lab(2 "<`small'")) title(" "))
-	graph export "${root}/results/figures/docs_dens_`y'.png", width(1500) replace
+	graph export "${root}/results/figures/docs_dens_`y'.png", width(500) replace
 	drop hold 
 }
 

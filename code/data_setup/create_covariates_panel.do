@@ -1,5 +1,6 @@
-set more off
-global root "$git/mua"
+/***
+Purpose: Create covariates panel
+***/
 
 * load tract covariates
 use ${root}/data/covariates/tract_covariates, clear
@@ -18,7 +19,7 @@ order county year
 by county: ipolate share_senior year, gen(share_senior_ip) 
 by county: ipolate poor_share year, gen(poor_share_ip) 
 by county: ipolate pop year, gen(pop_ip) 
-drop share_senior poor_share pop
+drop share_seniors poor_share pop
 gen county2 = string(county, "%05.0f")
 drop county
 rename county2 county
@@ -115,11 +116,8 @@ save ${root}/data/covariates/county_covariates_interpolated_imu, replace
 
 
 * now do a match
-cd /Users/Kaveh/Dropbox/mua/raw/ama
 
-set more off 
-
-use /Users/Kaveh/GitHub/mua/data/derived/mua_base, clear
+use "${root}/data/derived/mua_base", clear
 keep if desig_level=="cty"
 keep state county year imu 
 gen st = string(state,"%02.0f")
@@ -130,7 +128,7 @@ drop st cty state county2
 tempfile temp
 save `temp'
 
-use /Users/Kaveh/Dropbox/mua/raw/ama/ama_county_data, clear
+use "${root}/data/derived/ama_county_data", clear
 destring county, replace
 xtset county year
 tsfill
@@ -192,7 +190,7 @@ save ${root}/data/covariates/control_counties, replace
 
 * now run event study with control counties
 
-use /Users/Kaveh/Dropbox/mua/raw/ama/ama_county_data, clear
+use ${root}/data/derived/ama_county_data, clear
 destring county, replace
 xtset county year
 tsfill
@@ -237,40 +235,14 @@ twoway (scatter coef t) ///
 twoway (scatter coef t) ///
 (rcap ci_upper ci_lower t), ///
 ylab(-.3(.1).3)
-graph export ${root}/data/covariates/event_study_control.pdf, replace
-
-
-
-
-* now run a difference in difference regression with treated versus control counties
-
-use ${root}/data/covariates/treated_counties_panel, clear
-append using ${root}/data/covariates/control_counties_panel
-keep county year tot designation_year treated
-replace treated=0 if treated==-1
-
-*A
-gen eit = (year==designation_year)
-gen lndocs = ln(tot)
-
-*B
-gen event_time = year-designation_year
-gen post = (year>designation_year)
-gen did = post*treated
-reg lndocs event_time treated did
-
-
+*graph export ${root}/data/covariates/event_study_control.pdf, replace
 
 
 
 * event study with treated counties 
 
-cd /Users/Kaveh/Dropbox/mua/raw/ama
-
-set more off 
-
 * RUN EVENT STUDIES AT COUNTY LEVEL
-use /Users/Kaveh/GitHub/mua/data/derived/mua_base, clear
+use ${root}/data/derived/mua_base, clear
 keep if desig_level=="cty"
 keep state county year imu 
 gen st = string(state,"%02.0f")
@@ -282,7 +254,7 @@ tempfile temp
 save `temp'
 
 
-use /Users/Kaveh/Dropbox/mua/raw/ama/ama_county_data, clear
+use ${root}/data/derived/ama_county_data, clear
 destring county, replace
 xtset county year
 tsfill
@@ -334,10 +306,25 @@ twoway (scatter coef t) ///
 twoway (scatter coef t) ///
 (rcap ci_upper ci_lower t), ///
 ylab(-.3(.1).3)
-graph export ${root}/data/covariates/event_study_treatment.pdf
+*graph export ${root}/data/covariates/event_study_treatment.pdf
 
 
+* now run a difference in difference regression with treated versus control counties
 
+use ${root}/data/covariates/treated_counties_panel, clear
+append using ${root}/data/covariates/control_counties_panel
+keep county year tot designation_year treated
+replace treated=0 if treated==-1
+
+*A
+gen eit = (year==designation_year)
+gen lndocs = ln(tot)
+
+*B
+gen event_time = year-designation_year
+gen post = (year>designation_year)
+gen did = post*treated
+reg lndocs event_time treated did
 
 * create tables with treatment and control characteristics
 

@@ -2,28 +2,9 @@
 Purpose: Build infant mortality rates at the county level
 ***/
 
-* Set directories
-return clear
-capture project, doinfo
-if (_rc==0 & !mi(r(pname))) global root `r(pdir)'  // using -project-
-else {  // running directly
-	if ("${mua}"=="") do `"`c(sysdir_personal)'profile.do"'
-	do "${mua}/code/set_environment.do"
-}
-set more off 
-
-
 *---------------------------------------------------------------------
 *Read in raw CDC wonder data
 *---------------------------------------------------------------------
-
-*Save as temp files
-project, original("${root}/data/raw/Compressed Mortality 1968-1978.txt")
-project, original("${root}/data/raw/Compressed Mortality 1979-1998.txt")
-project, original("${root}/data/raw/Compressed Mortality 1999-2016.txt")
-project, original("${root}/data/raw/Pooled Mortality 1968-1978.txt")
-project, original("${root}/data/raw/Pooled Mortality 1979-1998.txt")
-project, original("${root}/data/raw/Pooled Mortality 1999-2016.txt")
 
 import delimited "${root}/data/raw/Compressed Mortality 1968-1978.txt", clear 
 tempfile 1
@@ -161,4 +142,3 @@ foreach p in 1968_1978 1979_1998 1999_2016 {
 *Output
 compress
 save "${root}/data/covariates/county_infmort.dta", replace
-project, creates("${root}/data/covariates/county_infmort.dta")

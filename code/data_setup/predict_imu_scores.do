@@ -1,8 +1,9 @@
-cd /Users/Kaveh/Dropbox/mua/raw/ama
+/***
+Purpose: Don't know Kaveh code
+***/
 
-global root = "/Users/Kaveh/GitHub/mua"
 * load in data
-use /Users/Kaveh/GitHub/mua/data/derived/mua_base, clear
+use ${root}/data/derived/mua_base, clear
 
 * try to match IMU scores for counties designated in 2007
 keep if desig_level=="cty" & year==2007

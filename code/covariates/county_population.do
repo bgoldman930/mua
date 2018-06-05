@@ -2,22 +2,10 @@
 Purpose: Clean county population data
 ***/
 
-* Set directories
-return clear
-capture project, doinfo
-if (_rc==0 & !mi(r(pname))) global root `r(pdir)'  // using -project-
-else {  // running directly
-	if ("${mua}"=="") do `"`c(sysdir_personal)'profile.do"'
-	do "${mua}/code/set_environment.do"
-}
-set more off 
-
-
 *---------------------------------------------------------------------
 *Read in already clean NBER file
 *---------------------------------------------------------------------
 
-project, original("${root}/data/raw/county_population.dta")
 use "${root}/data/raw/county_population.dta", clear
 
 *Clean county fips code
@@ -38,5 +26,8 @@ order state county region state_name county_name pop_*
 sort state county
 compress
 save "${root}/data/covariates/county_population.dta", replace
-project, creates("${root}/data/covariates/county_population.dta")
  
+*XX Something seems off here
+drop if state==0 | county==0
+reshape long pop_, i(state county) j(year)
+binscatter pop_ year, discrete

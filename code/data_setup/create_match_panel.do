@@ -1,10 +1,8 @@
+/***
+Purpose: Create match panel
+***/
 
-* create match panel 
-cd /Users/Kaveh/Dropbox/mua/raw/ama
-
-set more off 
-
-use /Users/Kaveh/GitHub/mua/data/derived/mua_base, clear
+use ${root}/data/derived/mua_base, clear
 keep if desig_level=="cty"
 keep state county year imu 
 gen st = string(state,"%02.0f")
@@ -15,7 +13,7 @@ drop st cty state county2
 tempfile temp
 save `temp'
 
-use /Users/Kaveh/Dropbox/mua/raw/ama/ama_county_data, clear
+use ${root}/data/derived/ama_county_data, clear
 destring county, replace
 xtset county year
 tsfill
@@ -73,7 +71,7 @@ save ${root}/data/covariates/treatment_control_pairs, replace
 
 
 * now merge in doctor counts
-use /Users/Kaveh/Dropbox/mua/raw/ama/ama_county_data, clear
+use ${root}/data/derived/ama_county_data, clear
 encode county, gen(countycode)
 tsset countycode year
 tsfill, full
@@ -104,7 +102,7 @@ rename tot tot_tx
 rename totpc totpc_tx
 rename county_control county
 sort county_tx year
-merge 1:1 county year using /Users/Kaveh/Dropbox/mua/raw/ama/ama_county_data
+merge 1:1 county year using ${root}/data/derived/ama_county_data
 drop if _merge==2
 drop _merge
 merge 1:1 county year using ${root}/data/covariates/county_covariates_interpolated, keepusing(pop_ip)
@@ -160,7 +158,7 @@ twoway (scatter coef t) ///
 (rcap ci_upper ci_lower t)
 
 
-graph export ${root}/data/covariates/event_study_treatment.pdf
+*graph export ${root}/data/covariates/event_study_treatment.pdf
 
 
 

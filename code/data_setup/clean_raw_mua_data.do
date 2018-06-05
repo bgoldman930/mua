@@ -2,22 +2,11 @@
 Purpose: Clean raw MUA data
 ***/
 
-* Set directories
-return clear
-capture project, doinfo
-if (_rc==0 & !mi(r(pname))) global root `r(pdir)'  // using -project-
-else {  // running directly
-	if ("${mua}"=="") do `"`c(sysdir_personal)'profile.do"'
-	do "${mua}/code/set_environment.do"
-}
-set more off 
-
 *---------------------------------------------------------------------
 *Basic cleaning - generate date variable
 *---------------------------------------------------------------------
 
 *Date variable
-project, original("${root}/data/raw/mua_det.csv")
 insheet using "${root}/data/raw/mua_det.csv", comma clear
 g date = date(v53, "YMD")
 format date %tdMon-YY
@@ -90,4 +79,3 @@ order state county tract desig_level date year month day imu poor_share share_se
 sort date state county tract
 label var date "Date of designation"
 save "${root}/data/derived/mua_base.dta", replace
-project, creates("${root}/data/derived/mua_base.dta")

@@ -4,8 +4,7 @@ Purpose: Binned scatter plot between doctor density and poverty rate
 
 *** County Level ***
 
-use "${root}/data/raw/covariates_tract_wide", clear
-rename (state10 county10 tract10) (state county tract)
+use "${root}/data/covariates/tract_covariates_wide", clear
 
 *Collapse to the county level
 collapse (mean) poor_share2010 (rawsum) pop2010 [w=pop2010], by(state county)
@@ -39,8 +38,7 @@ save `docs'
 
 *** Tract Level ***
 
-use "${root}/data/raw/covariates_tract_wide", clear
-rename (state10 county10 tract10) (state county tract)
+use "${root}/data/covariates/tract_covariates_wide", clear
 
 *Merge on the 2010 doctor countrs from the AMA data
 merge 1:1 state county tract using `docs', ///

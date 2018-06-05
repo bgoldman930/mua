@@ -8,8 +8,7 @@ global rhs ///
 	share_seniors2010		frac_coll_plus2010		median_value2010 ///
 	hhinc_mean2010			poor_share2010			poor_share2000
 
-use "${root}/data/raw/covariates_tract_wide", clear
-rename (state10 county10 tract10) (state county tract)
+use "${root}/data/covariates/tract_covariates_wide", clear
 
 *Collapse to the county level
 collapse (mean) ${rhs} (rawsum) pop2010 [w=pop2010], by(state county)
