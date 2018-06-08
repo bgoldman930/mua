@@ -1,57 +1,70 @@
-/***
-Purpose: Don't know Kaveh code
-***/
+set more off
+
+/*
+
+This file checks how well we can predict IMU scores. (It is very incomplete at the moment.)
+
+It does so by attempting to compute imu score & compare it to actual imu score for counties designated as muas in 2007.
+
+The file proceeds in three steps:
+1. load decennial tract-level panel of poor share and senior share, collapse to county-level, and interpolate 
+2. combine two sources of infant mortality data, interpolate, and join to output of 1
+3. predict imu score using data generated in 1 and 2
+
+Note this was attempted before the covariates panel was created. so it is not done as cleanly as one might expect....
+
+*/
 
 * load in data
-use ${root}/data/derived/mua_base, clear
+use 	${root}/data/derived/mua_base, clear
 
-* try to match IMU scores for counties designated in 2007
-keep if desig_level=="cty" & year==2007
-keep state county year imu poor_share share_senior inf_mort rural 
+* limit to places designated at county level in 2007
+keep 	if desig_level=="cty" & year==2007
+keep 	state county year imu poor_share share_senior inf_mort rural 
 
 * merge in infant mortality data
-rename inf_mort inf_mort_mua
-merge 1:1 state county year using ${root}/data/covariates/county_infmort, keepusing(inf_mort inf_mort_1999_2016)
-drop if _merge==2
-drop _merge
+rename 	inf_mort inf_mort_mua
+merge 	1:1 state county year using ${root}/data/covariates/county_infmort, keepusing(inf_mort inf_mort_1999_2016)
+drop 	if _merge==2
+drop 	_merge
 replace inf_mort = inf_mort*1000
 replace inf_mort_1999_2016 = inf_mort_1999_2016*1000
-order inf_mort_mua inf_mort_1999 inf_mort 
-merge 1:1 state county using ${root}/data/covariates/ahrf_covariates, keepusing(inf_mort_*)
-drop if _merge==2
-drop _merge
+order 	inf_mort_mua inf_mort_1999 inf_mort 
+merge 	1:1 state county using ${root}/data/covariates/ahrf_covariates, keepusing(inf_mort_*)
+drop 	if _merge==2
+drop 	_merge
 
 * merge in poor_share data
 rename poor_share poor_share_mua
-merge 1:1 state county using ${root}/data/covariates/ahrf_covariates, keepusing(poor_share_2005 pop_2005)
-drop if _merge==2
-drop _merge
-gen poor_share = poor_share_2005/pop_2005
-order poor_share_mua poor_share 
+merge 	1:1 state county using ${root}/data/covariates/ahrf_covariates, keepusing(poor_share_2005 pop_2005)
+drop 	if _merge==2
+drop	 _merge
+gen 	poor_share = poor_share_2005/pop_2005
+order 	poor_share_mua poor_share 
 replace poor_share=100*poor_share
 
 * merge in senior_share data
-rename share_senior senior_share_mua
-merge 1:1 state county using ${root}/data/covariates/ahrf_covariates, keepusing(seniors_pop_2005 pop_2005 pop_2007)
-drop if _merge==2
-drop _merge
-gen share_senior = seniors_pop_2005/pop_2005
+rename 	share_senior senior_share_mua
+merge 	1:1 state county using ${root}/data/covariates/ahrf_covariates, keepusing(seniors_pop_2005 pop_2005 pop_2007)
+drop 	if _merge==2
+drop 	_merge
+gen 	share_senior = seniors_pop_2005/pop_2005
 replace share_senior = share_senior*100
-order senior_share_mua share_senior
+order 	senior_share_mua share_senior
 
 * merge in doctor data
-gen st = string(state,"%02.0f")
-gen cty = string(county,"%03.0f")
-rename county county2
-gen county = st+cty
-drop st cty
-merge 1:1 county year using /Users/Kaveh/Dropbox/mua/raw/ama/ama_county_data
-drop if _merge==2
-drop _merge
-gen doc_dens = 1000*(totpc/pop_2007)
+gen 	st = string(state,"%02.0f")
+gen 	cty = string(county,"%03.0f")
+rename 	county county2
+gen 	county = st+cty
+drop 	st cty
+merge 	1:1 county year using /Users/Kaveh/Dropbox/mua/raw/ama/ama_county_data
+drop 	if _merge==2
+drop 	_merge
+gen 	doc_dens = 1000*(totpc/pop_2007)
 
 * keep relevant variables 
-keep senior_share_mua share_senior poor_share_mua poor_share inf_mort_mua inf_mort_1996_2000 state county2 year imu rural county totpc doc_dens
+keep 	senior_share_mua share_senior poor_share_mua poor_share inf_mort_mua inf_mort_1996_2000 state county2 year imu rural county totpc doc_dens
 
 * now recode covariates to align with stupid imu tables
 
@@ -94,23 +107,23 @@ recode doc_dens		(0/0.05=0)       (0.05/0.1=0.5)  (0.1/0.15=1.5)   (.15/.2=2.8) 
 				    (.8/.85=24.3)    (.85/.9=25.3)   (.9/.95=25.9)    (.95/1.0=26.6) ///
 				    (1.0/1.05=27.2)  (1.05/1.1=27.7) (1.1/1.15=28.0)  (1.15/1.2=28.3) ///
 				    (1.2/1.25=28.6)  (1.25/100=28.7), gen(doc_dens_imu)	
-					
-gen predicted_imu=poor_share_imu+share_senior_imu+inf_mort_imu
-sum predicted_imu
+	
+* generate imu prediction
+gen 	predicted_imu=poor_share_imu+share_senior_imu+inf_mort_imu
 
-
+* run correlation and regression
 corr imu predicted_imu 
-
 reg imu predicted_imu
 
+* generate rough predicted score
 gen predicted_imu2 =   -5.40022 +   1.136819*predicted_imu
 
 
-* NEXT STEP: 
+* NEXT STEPS: 
 ** repeat this for all counties after 1999
 ** to do this will need to interpolate to construct county-year panel with poor share, senior share, and infant mortality
 ** then can merge in covariates at the county-year level and compute the IMU estimates
-** once i have estimates can do a few things:
+** once we have estimates can do a few things:
 *** make RD graph of doctor density
 *** use estimates to define Tx and control groups (58-62 vs 62-66), then make diff-in-diff graph 
 * later
