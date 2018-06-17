@@ -34,7 +34,6 @@ graph 	export ${root}/results/figures/docspchist2.pdf, replace
 * HOW MANY PLACES WERE DESIGNATED?
 
 * load mua panel
-cd		/Users/Kaveh/Desktop
 use 	${root}/data/derived/mua_panel_allgeo, clear
 
 * calculate number of places

@@ -40,8 +40,6 @@ do "${root}/code/data_setup/clean_ihme_data.do"
 do "${root}/code/data_setup/clean_clinic_data.do"
 do "${root}/code/data_setup/create_covariates_panel.do"
 do "${root}/code/data_setup/create_panels.do"
-*do "${root}/code/data_setup/create_match_panel.do" // this is outdated
-*do "${root}/code/data_setup/predict_imu_scores.do" // this does not produce output
 
 *Descriptive statistics
 do "${root}/code/descriptive/maps.do"
@@ -57,4 +55,4 @@ do "${root}/code/analysis/generate_descriptive_stats.do"
 do "${root}/code/analysis/run_event_study_clinics.do"
 do "${root}/code/analysis/run_event_study_doctors.do"
 do "${root}/code/analysis/run_event_study_mortality.do"
-
+do "${root}/code/analysis/rd_stage1.do"

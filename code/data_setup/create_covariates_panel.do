@@ -20,11 +20,11 @@ The file proceeds in three steps:
 use 	${root}/data/covariates/tract_covariates, clear
 
 * keep relevant vars and rows
-keep 	state county tract year pop share_senior poor_share
-drop 	if year==1980
+keep 	state county tract year pop popdensity share_senior poor_share
+drop if year==1980
 
 * collapse to county-level 
-collapse (mean) share_senior poor_share (rawsum) pop [w=pop], by(state county year)
+collapse (mean) share_senior poor_share popdensity (rawsum) pop [w=pop], by(state county year)
 
 * make numeric county id
 gen 	st = string(state,"%02.0f")
@@ -38,20 +38,27 @@ destring county, replace
 xtset 	county year
 tsfill
 
-* do interpolation
-order 	county year
-by 		county: ipolate share_senior year, gen(share_senior_ip) 
-by 		county: ipolate poor_share year, gen(poor_share_ip) 
-by 		county: ipolate pop year, gen(pop_ip) 
-drop 	share_seniors poor_share pop
-
 * turn county back into string
 gen 	county2 = string(county, "%05.0f")
 drop 	county
 rename 	county2 county
 
+* merge on the doctor data
+merge 1:1 county year using ${root}/data/derived/ama_county_data, ///
+	keepusing(tot) keep(1 3) nogen
+rename tot docs
+
+* do interpolation
+order 	county year
+foreach x in share_senior poor_share docs pop popdensity {
+	by 		county: ipolate `x' year, gen(`x'_ip) 
+}
+g docs_pers_ip=docs_ip/pop_ip
+drop 	share_seniors poor_share pop docs_ip docs popdensity
+
 * save 
-save ${root}/data/derived/county_covariates_interpolated, replace
+tempfile part1
+save `part1'
 
 * STEP 2: ADD INFANT MORTALITY DATA (FROM AHRF AND CDC) TO THE MIX 
 * XX this is very rough due to the poor infant mortality data; should def be cleaned up at some point
@@ -113,7 +120,7 @@ drop 	st cty state county2
 drop 	if year>2010
 
 * merge in file created in step 1
-merge 	1:1 county year using ${root}/data/derived/county_covariates_interpolated
+merge 	1:1 county year using `part1'
 drop 	_merge
 
 * housekeeping
@@ -125,7 +132,7 @@ tsfill
 
 * save (over-write previous version)
 save ${root}/data/derived/county_covariates_interpolated, replace
-
+e
 
 * STEP 3: PREDICT IMU SCORES AND ADD THEM TO PANEL
 * XX note here we are not using the doctor data in the IMU score
@@ -185,251 +192,3 @@ order 	county year
 
 * save 
 save ${root}/data/derived/county_covariates_interpolated_imu, replace
-
-
-
-/*
-
-KAVEH OLD CODE STASH
-(benny says, but isnt the point of github so that we can get rid of shit like this?)
-
-* now do a match
-
-use "${root}/data/derived/mua_base", clear
-keep if desig_level=="cty"
-keep state county year imu 
-gen st = string(state,"%02.0f")
-gen cty = string(county,"%03.0f")
-rename county county2
-gen county = st+cty
-drop st cty state county2
-tempfile temp
-save `temp'
-
-use "${root}/data/derived/ama_county_data", clear
-destring county, replace
-xtset county year
-tsfill
-gen county2 = string(county,"%05.0f")
-drop county
-rename county2 county
-order county
-merge 1:1 county year using ${root}/data/covariates/county_covariates_interpolated_imu
-drop if _merge==2
-drop _merge
-merge 1:1 county year using `temp'
-drop if _merge==2
-gen desig = (imu!=.)
-replace desig = year if desig==1
-bys county: egen designation_year=max(desig)
-replace designation_year=. if designation_year==0
-bys county: gen treated=(designation_year!=.)
-drop desig _merge
-tempfile temp
-save `temp'
-
-* save control counties
-keep if treated==0
-gen st = substr(county,1,2)
-gen cty = substr(county, 3,3)
-keep st year cty predicted_imu
-rename cty cty_ctrl
-rename predicted_imu imu_ctrl 
-tempfile temp2
-save `temp2'
-
-
-* now, for each place that got treated, find a place in the same state that did not get treated
-* then run a diff-in-diff 
-use `temp', clear
-keep county year imu predicted_imu designation_year treated 
-keep if treated==1 & year==designation_year
-gen st = substr(county,1,2)
-gen cty = substr(county, 3,3)
-order st cty county year
-merge m:m st year using `temp2'
-order st cty
-sort st cty
-keep if _merge==3
-gen imudiff = abs(predicted_imu-imu_ctrl)
-gsort county imudiff
-bys county: gen count=_n
-keep if count==1
-keep st cty_ctrl year 
-rename cty_ctrl cty
-gen county=st+cty
-order county year
-keep county year
-sort county year
-bys county year: gen count=_n
-drop if count>1
-save ${root}/data/covariates/control_counties, replace
-
-
-* now run event study with control counties
-
-use ${root}/data/derived/ama_county_data, clear
-destring county, replace
-xtset county year
-tsfill
-gen county2 = string(county,"%05.0f")
-drop county
-rename county2 county
-order county
-merge 1:1 county year using ${root}/data/covariates/control_counties
-gen desig = (count!=.)
-replace desig = year if desig==1
-bys county: egen designation_year=max(desig)
-replace designation_year=. if designation_year==0
-bys county: gen treated=(designation_year!=.)
-drop desig _merge
-keep if treated==1
-keep if designation_year>1993 & designation_year<2010
-replace treated=-1 if treated==1
-save ${root}/data/covariates/control_counties_panel, replace
-by county: ipolate tot year, gen(tot_ip) 
-
-*A
-gen eit = (year==designation_year)
-gen lndocs = ln(tot)
-
-*B
-encode county, gen(countycode)
-tsset countycode year
-save temp, replace
-gen binpre = (year-designation_year <= -6)
-gen binpost = (year-designation_year >= 6)
-reg lndocs binpre l(-5/-2).eit l(0/5).eit binpost i.year, absorb(county) cluster(county)
-
-*C 
-regsave, ci
-gen t = _n - 7
-replace t = t+1 if _n>=6
-drop if _n>12
-twoway (scatter coef t) ///
-(line ci_lower t) ///
-(line ci_upper t)
-
-twoway (scatter coef t) ///
-(rcap ci_upper ci_lower t), ///
-ylab(-.3(.1).3)
-*graph export ${root}/data/covariates/event_study_control.pdf, replace
-
-
-
-* event study with treated counties 
-
-* RUN EVENT STUDIES AT COUNTY LEVEL
-use ${root}/data/derived/mua_base, clear
-keep if desig_level=="cty"
-keep state county year imu 
-gen st = string(state,"%02.0f")
-gen cty = string(county,"%03.0f")
-rename county county2
-gen county = st+cty
-drop st cty state county2
-tempfile temp
-save `temp'
-
-
-use ${root}/data/derived/ama_county_data, clear
-destring county, replace
-xtset county year
-tsfill
-gen county2 = string(county,"%05.0f")
-drop county
-rename county2 county
-order county
-merge 1:1 county year using ${root}/data/covariates/county_covariates_interpolated
-drop if _merge==2
-drop _merge
-merge 1:1 county year using `temp'
-drop if _merge==2
-gen desig = (imu!=.)
-replace desig = year if desig==1
-bys county: egen designation_year=max(desig)
-replace designation_year=. if designation_year==0
-bys county: gen treated=(designation_year!=.)
-drop desig _merge
-keep if treated==1
-keep if designation_year>1993 & designation_year<2010
-save ${root}/data/covariates/treated_counties_panel, replace
-by county: ipolate tot year, gen(tot_ip) 
-by county: ipolate pop_ip year, gen(pop_ip2) epolate
-
-*A
-gen eit = (year==designation_year)
-gen lndocs = ln(tot)
-gen docs_per_capita = 1000*(tot/pop_ip2)
-gen lndocs_pc = ln(docs_per_capita)
-
-
-*B
-encode county, gen(countycode)
-tsset countycode year
-save temp, replace
-gen binpre = (year-designation_year <= -6)
-gen binpost = (year-designation_year >= 6)
-reg lndocs_pc binpre l(-5/-2).eit l(0/5).eit binpost i.year, absorb(county) cluster(county)
-
-*C 
-regsave, ci
-gen t = _n - 7
-replace t = t+1 if _n>=6
-drop if _n>12
-twoway (scatter coef t) ///
-(line ci_lower t) ///
-(line ci_upper t)
-
-twoway (scatter coef t) ///
-(rcap ci_upper ci_lower t), ///
-ylab(-.3(.1).3)
-*graph export ${root}/data/covariates/event_study_treatment.pdf
-
-
-* now run a difference in difference regression with treated versus control counties
-
-use ${root}/data/covariates/treated_counties_panel, clear
-append using ${root}/data/covariates/control_counties_panel
-keep county year tot designation_year treated
-replace treated=0 if treated==-1
-
-*A
-gen eit = (year==designation_year)
-gen lndocs = ln(tot)
-
-*B
-gen event_time = year-designation_year
-gen post = (year>designation_year)
-gen did = post*treated
-reg lndocs event_time treated did
-
-* create tables with treatment and control characteristics
-
-use ${root}/data/covariates/treated_counties_panel, clear
-append using ${root}/data/covariates/control_counties_panel
-replace treated=0 if treated==-1
-sort county year
-by county: ipolate tot year, gen(tot_ip) 
-by county: ipolate totpc year, gen(totpc_ip) 
-keep if year==designation_year
-keep county year tot_ip totpc_ip treated 
-merge 1:1 county year using ${root}/data/covariates/county_covariates_interpolated_imu
-drop if _merge==2
-drop _merge
-sort treated
-by treated: sum tot_ip totpc_ip pred poor share inf_mort
-
-
-
-
-use /Users/Kaveh/Dropbox/mua/raw/ama/ama_county_data, clear
-destring county, replace
-xtset county year
-tsfill
-gen county2 = string(county,"%05.0f")
-drop county
-rename county2 county
-order county
-merge 1:1 county year using ${root}/data/covariates/county_covariates_interpolated
-drop if _merge==2
