@@ -138,7 +138,7 @@ STEP 2: PREDICT IMU FOR ALL COUNTIES
 keep 	if docspc!=. & inf_mort!=. & poor_share!=. & share_senior!=.
 
 * drop places designated at tract level
-drop	if desig_level=="tract"
+drop	if desig_level=="tract" | desig_level=="mcd"
 
 * scale variables
 replace 	poor_share=poor_share*100
@@ -194,14 +194,15 @@ hist 	predicted_imu
 
 * now create bins
 drop 	if predicted_imu>100
-*gen imu_bin = round(predicted_imu)
+gen imu_bin = round(predicted_imu)
 
+/*
 recode predicted_imu (0/5=5)   (5/10=10)   (10/15=15)   (15/20=20) ///
 				    (20/25=25) (25/30=30) (30/35=35)  (35/40=40) ///
 				    (40/45=45) (45/50=50) (50/55=55)  (55/60=60) ///
 				    (60/65=65) (65/70=70) (70/75=75)  (75/80=80) ///
 				    (80/85=85) (85/90=90)  (90/95=95)   (95/1000=100), gen(imu_bin)	
-
+*/
 					
 /********************************
 STEP 3: MAKE FS GRAPH
@@ -215,3 +216,11 @@ collapse (mean) designated (count) poor_share, by(imu_bin)
 
 * make first stage graph
 twoway 	scatter designated imu_bin
+
+twoway ///
+(scatter designated imu_bin, xline(62)) ///
+(lpolyci designated imu_bin if imu_bin<62, fcolor(none)) ///
+(lpolyci designated imu_bin if imu_bin>=62, fcolor(none)), xline(0)  legend(off)
+
+
+
