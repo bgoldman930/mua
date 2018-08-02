@@ -14,8 +14,10 @@ STEP 1: MERGE TOGETHER COVARIATES
 * load data
 use 	${root}/data/covariates/ahrf_covariates.dta, clear
 
-* generate docs per capita (1980)
+* generate docs per capita 
+gen 	docspc1970 = 1000*total_mds_1970/pop_1970
 gen 	docspc1980 = 1000*total_mds_1980/pop_1980
+gen 	docspc1990 = 1000*total_mds_1990/pop_1990
 
 * make numeric county id
 gen 	st = string(state,"%02.0f")
@@ -26,7 +28,7 @@ drop 	st cty state county2
 destring county, replace
 
 * keep relevant vars
-keep 	county docspc1980
+keep 	county docspc1970 docspc1980 docspc1990 
 
 * save as tempfile
 tempfile 	docspc
@@ -57,8 +59,13 @@ keep 	county inf_mort_1968_1978
 tempfile 	infmort
 save 		`infmort'
 
+
 * GET POVERTY AND ELDERLY
 
+use 	/Users/Kaveh/Desktop/poverty_old_1970, clear // XX Benny these are from the new covariate file you sent me, my b on not uploading etc
+rename 	share_old share_seniors
+
+/*
 * load data
 use 	${root}/data/covariates/tract_covariates.dta, clear
 
@@ -79,6 +86,7 @@ destring county, replace
 
 * keep relevant vars
 keep 	county poor_share share_seniors
+*/
 
 * save as tempfile
 tempfile 	poor_old
@@ -135,7 +143,7 @@ STEP 2: PREDICT IMU FOR ALL COUNTIES
 *********************************/
 
 * keep only rows with all covariates
-keep 	if docspc!=. & inf_mort!=. & poor_share!=. & share_senior!=.
+keep 	if docspc1980!=. & inf_mort!=. & poor_share!=. & share_senior!=.
 
 * drop places designated at tract level
 drop	if desig_level=="tract" | desig_level=="mcd"
@@ -144,47 +152,56 @@ drop	if desig_level=="tract" | desig_level=="mcd"
 replace 	poor_share=poor_share*100
 replace 	share_senior=share_senior*100
 replace 	inf_mor=inf_mor*1000
-replace 	docspc=0.61*docspc /// primary care
+replace 	docspc1970=0.61*docspc1970 // primary care - note this is a total guess for now
+
+* round variables
+replace 	poor_share = round(poor_share, 0.1)
+replace 	share_senior = round(share_senior, 0.1)
+replace 	inf_mort = round(inf_mort, 0.1)
+replace 	docspc1970 = round(docspc1970, 0.001)
+
 
 * recode poor_share
-recode 	poor_share (0/2=24.6)   (2/4=23.7)   (4/6=22.8)   (6/8=21.9) ///
-				  (8/10=21.0)  (10/12=20.0) (12/14=18.7) (14/16=17.4) ///
-				  (16/18=16.2) (18/20=14.9) (20/22=13.6) (22/24=12.2) ///
-				  (24/26=10.9) (26/28=9.3)  (28/30=7.8)  (30/32=6.6) ///
-				  (32/34=5.6)  (34/36=4.7)  (36/38=3.4)  (38/40=2.1) ///
-				  (40/42=1.3)  (42/44=1.0)  (44/46=0.7)  (46/48=0.4) ///
-				  (48/50=0.1)  (50/100=0), gen(poor_share_imu)	
+recode 	poor_share (0.1/2=24.6)   (2.1/4=23.7)   (4.1/6=22.8)   (6.1/8=21.9) ///
+				  (8.1/10=21.0)  (10.1/12=20.0) (12.1/14=18.7) (14.1/16=17.4) ///
+				  (16.1/18=16.2) (18.1/20=14.9) (20.1/22=13.6) (22.1/24=12.2) ///
+				  (24.1/26=10.9) (26.1/28=9.3)  (28.1/30=7.8)  (30.1/32=6.6) ///
+				  (32.1/34=5.6)  (34.1/36=4.7)  (36.1/38=3.4)  (38.1/40=2.1) ///
+				  (40.1/42=1.3)  (42.1/44=1.0)  (44.1/46=0.7)  (46.1/48=0.4) ///
+				  (48.1/50=0.1)  (50/100=0), gen(poor_share_imu)	
 replace poor_share_imu=25.1 if poor_share==0
 
 * recode share_senior
-recode share_senior (0/7=20.2)   (7/8=20.1)   (8/9=19.9)   (9/10=19.8) ///
-				    (10/11=19.6) (11/12=19.4) (12/13=19.1) (13/14=18.9) ///
-				    (14/15=18.7) (15/16=17.8) (16/17=16.1) (17/18=14.4) ///
-				    (18/19=12.8) (19/20=11.1) (20/21=9.8)  (21/22=8.9) ///
-				    (22/23=8.0)  (23/24=7.0)  (24/25=6.1)  (25/26=5.1) ///
-				    (26/27=4.0)  (27/28=2.8)  (28/29=1.7)  (29/30=0.6) ///
+recode share_senior (0/7=20.2)   (7.1/8=20.1)   (8.1/9=19.9)   (9.1/10=19.8) ///
+				    (10.1/11=19.6) (11.1/12=19.4) (12.1/13=19.1) (13.1/14=18.9) ///
+				    (14.1/15=18.7) (15.1/16=17.8) (16.1/17=16.1) (17.1/18=14.4) ///
+				    (18.1/19=12.8) (19.1/20=11.1) (20.1/21=9.8)  (21.1/22=8.9) ///
+				    (22.1/23=8.0)  (23.1/24=7.0)  (24.1/25=6.1)  (25.1/26=5.1) ///
+				    (26.1/27=4.0)  (27.1/28=2.8)  (28.1/29=1.7)  (29.1/30=0.6) ///
 				    (30/100=0), gen(share_senior_imu)	
 				  
 * recode infant mortality
-recode inf_mor	    (0/8=26.0)   (8/9=25.6)   (9/10=24.8)   (10/11=24.0) ///
-				    (11/12=23.2) (12/13=22.4) (13/14=21.5)  (14/15=20.5) ///
-				    (15/16=19.5) (16/17=18.5) (17/18=17.5)  (18/19=16.4) ///
-				    (19/20=15.3) (20/21=14.2) (21/22=13.1)  (22/23=11.9) ///
-				    (23/24=10.8) (24/25=9.6)  (25/26=8.5)   (26/27=7.3) ///
-				    (27/28=6.1)  (28/29=5.4)  (29/30=5.0)   (30/31=4.7) ///
-					(31/32=4.3)  (32/33=4.0)  (33/34=3.6)   (34/35=3.3) ///
-					(35/36=3.0)  (36/37=2.6)  (37/39=2.0)   (39/41=1.4) ///
-					(41/43=0.8)  (43/45=0.2)  (45/100=0), gen(inf_mort_imu)	
+recode inf_mor	    (0/10=26.0)   (10.1/11=25.6)   (11.1/12=24.8)   (12.1/13=24.0) ///
+				    (13.1/14=23.2) (14.1/15=22.4) (15.1/16=21.5)  (16.1/17=20.5) ///
+				    (17.1/18=19.5) (18.1/19=18.5) (19.1/20=17.5)  (20.1/21=16.4) ///
+				    (21.1/22=15.3) (22.1/23=14.2) (23.1/24=13.1)  (24.1/25=11.9) ///
+				    (25.1/26=10.8) (26.1/27=9.6)  (27.1/28=8.5)   (28.1/29=7.3) ///
+				    (29.1/30=6.1)  (30.1/31=5.4)  (31.1/32=5.0)   (32.1/33=4.7) ///
+					(33.1/34=4.3)  (34.1/35=4.0)  (35.1/36=3.6)   (36.1/37=3.3) ///
+					(37.1/38=3.0)  (38.1/39=2.6)  (39.1/40=2.3)   (30.1/41=2.0) ///
+					(41.1/42=1.8)  (42.1/43=1.6)  (43.1/44=1.4)   (44.1/45=1.2) /// 
+					(45.1/46=1.0)  (46.1/47=0.8)  (47.1/48=0.6)   (48.1/49=0.3) ///
+					(49.1/50=0.1)  (50/1000=0), gen(inf_mort_imu)	
 	
 
 * recode doctor density
-recode docspc		(0/0.05=0)       (0.05/0.1=0.5)  (0.1/0.15=1.5)   (.15/.2=2.8) ///
-				    (.2/.25=4.1)     (.25/.3=5.7)    (.3/.35=7.3)     (.35/.4=9.0) ///
-				    (.4/.45=10.7)    (.45/.5=12.6)   (.5/.55=14.8)    (.55/.6=16.9) ///
-				    (.6/.65=19.1)    (.65/.7=20.7)   (.7/.75=21.9)    (.75/.8=23.1) ///
-				    (.8/.85=24.3)    (.85/.9=25.3)   (.9/.95=25.9)    (.95/1.0=26.6) ///
-				    (1.0/1.05=27.2)  (1.05/1.1=27.7) (1.1/1.15=28.0)  (1.15/1.2=28.3) ///
-				    (1.2/1.25=28.6)  (1.25/100=28.7), gen(doc_dens_imu)	
+recode docspc1970	(.001/0.05=0.5)   (.051/0.1=1.6)  (.101/0.15=2.8)   (.151/.2=4.1) ///
+				    (.201/.25=5.7)     (.251/.3=7.3)    (.301/.35=9.0)     (.351/.4=10.7) ///
+				    (.401/.45=12.6)    (.451/.5=14.8)   (.501/.55=16.9)    (.551/.6=19.1) ///
+				    (.601/.65=20.7)    (.651/.7=21.9)   (.701/.75=23.1)    (.751/.8=24.3) ///
+				    (.801/.85=25.3)    (.851/.9=25.9)   (.901/.95=26.6)    (.951/1.0=27.2) ///
+				    (1.001/1.05=27.7)  (1.051/1.1=28.0) (1.101/1.15=28.3)  (1.151/1.2=28.6) ///
+				    (1.2/1000=28.7), gen(doc_dens_imu)	
 					
 * create predicted imu score				
 gen 	predicted_imu=poor_share_imu + share_senior_imu + inf_mort_imu + doc_dens_imu
@@ -194,7 +211,8 @@ hist 	predicted_imu
 
 * now create bins
 drop 	if predicted_imu>100
-gen imu_bin = round(predicted_imu)
+xtile 	imu_bin = predicted_imu, n(30)
+*gen imu_bin = round(predicted_imu)
 
 /*
 recode predicted_imu (0/5=5)   (5/10=10)   (10/15=15)   (15/20=20) ///
@@ -205,22 +223,50 @@ recode predicted_imu (0/5=5)   (5/10=10)   (10/15=15)   (15/20=20) ///
 */
 					
 /********************************
-STEP 3: MAKE FS GRAPH
+STEP 3: MAKE FS+RF GRAPHS
 *********************************/
+
+* PREP
 
 * create designation variable
 gen 	designated = (desig_level!="")
 
+* create doctor outcome variable
+gen 	docs_change = (docspc1990-docspc1980)/docspc1980
+
 * collapse
-collapse (mean) designated (count) poor_share, by(imu_bin)
+collapse (mean) designated docs_change predicted_imu (count) poor_share, by(imu_bin)
+
+* FIRST STAGE
 
 * make first stage graph
-twoway 	scatter designated imu_bin
+twoway 	scatter designated predicted_imu
 
+* make first stage graph with smooths
 twoway ///
-(scatter designated imu_bin, xline(62)) ///
-(lpolyci designated imu_bin if imu_bin<62, fcolor(none)) ///
-(lpolyci designated imu_bin if imu_bin>=62, fcolor(none)), xline(0)  legend(off)
+(scatter designated predicted_imu, xline(62)) ///
+(lpolyci designated predicted_imu if predicted_imu<62, fcolor(none)) ///
+(lpolyci designated predicted_imu if predicted_imu>=62, fcolor(none)), xline(0)  legend(off)
 
+* make first stage graph with smooths - zoom in on cutoff
+twoway ///
+(scatter designated predicted_imu if predicted_imu>40 & predicted_imu<80, xline(62)) ///
+(lpolyci designated predicted_imu if predicted_imu<62 & predicted_imu>40, fcolor(none)) ///
+(lpolyci designated predicted_imu if predicted_imu>=62 & predicted_imu<80, fcolor(none)), xline(0)  legend(off)
+
+* make reduced form graph
+twoway scatter docs_change predicted_imu
+
+* make reduced form graph with smooths
+twoway ///
+(scatter docs_change predicted_imu, xline(62)) ///
+(lpolyci docs_change predicted_imu if predicted_imu<62, fcolor(none)) ///
+(lpolyci docs_change predicted_imu if predicted_imu>=62, fcolor(none)), xline(0)  legend(off)
+
+* make reduced form graph with smooths - zoom in on cutoff
+twoway ///
+(scatter docs_change predicted_imu if predicted_imu>40 & predicted_imu<80, xline(62)) ///
+(lpolyci docs_change predicted_imu if predicted_imu<62 & predicted_imu>40, fcolor(none)) ///
+(lpolyci docs_change predicted_imu if predicted_imu>=62 & predicted_imu<80, fcolor(none)), xline(0)  legend(off)
 
 
