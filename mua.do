@@ -6,6 +6,8 @@ Project began January 2017: Kaveh Danesh and Benny Goldman
 drop _all
 set more off
 global root "$git/mua"
+adopath + "${root}/code/ado"
+set scheme bgplain
 
 *------------------------------------------------------------------------------
 *Create and clean directories
@@ -29,30 +31,11 @@ capture mkdir "${root}/data/covariates"
 
 *Covariates
 do "${root}/code/covariates/county_infant_mortality.do"
-do "${root}/code/covariates/county_population.do"
-do "${root}/code/covariates/tract_covariates.do"
 do "${root}/code/covariates/ahrf.do"
 
-*Data setup
-do "${root}/code/data_setup/clean_raw_mua_data.do"
-do "${root}/code/data_setup/clean_ama_data.do" 
-do "${root}/code/data_setup/clean_ihme_data.do"
-do "${root}/code/data_setup/clean_clinic_data.do"
-do "${root}/code/data_setup/create_covariates_panel.do"
-do "${root}/code/data_setup/create_panels.do"
+*Set up using RD in 1978
+do "${root}/code/data_setup/county_with_covars.do"
 
-*Descriptive statistics
-do "${root}/code/descriptive/maps.do"
-do "${root}/code/descriptive/corrplot.do"
-do "${root}/code/descriptive/bin_pov.do"
-do "${root}/code/descriptive/le_docs.do"
-do "${root}/code/descriptive/trends.do"
-do "${root}/code/descriptive/ranks.do"
-do "${root}/code/descriptive/specialists.do"
+*Try the RD and the dif n' dif
+do "${root}/code/analysis/rd_dnd_1978.do"
 
-*Analysis
-do "${root}/code/analysis/generate_descriptive_stats.do"
-do "${root}/code/analysis/run_event_study_clinics.do"
-do "${root}/code/analysis/run_event_study_doctors.do"
-do "${root}/code/analysis/run_event_study_mortality.do"
-do "${root}/code/analysis/rd_stage1.do"

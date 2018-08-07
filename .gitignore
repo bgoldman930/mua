@@ -7,3 +7,4 @@ data/
 results/
 *.dta
 *.smcl
+*.DS_Store
