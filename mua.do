@@ -30,12 +30,14 @@ capture mkdir "${root}/data/covariates"
 *------------------------------------------------------------------------------
 
 *Covariates
-do "${root}/code/covariates/county_infant_mortality.do"
-do "${root}/code/covariates/ahrf.do"
+do "${root}/code/data_setup/county_infant_mortality.do"
+do "${root}/code/data_setup/county_mortality.do"
+do "${root}/code/data_setup/ahrf.do"
 
 *Set up using RD in 1978
 do "${root}/code/data_setup/county_with_covars.do"
 
 *Try the RD and the dif n' dif
 do "${root}/code/analysis/rd_dnd_1978.do"
-
+do "${root}/code/analysis/map_of_predictions.do"
+do "${root}/code/analysis/naiive regs.do"

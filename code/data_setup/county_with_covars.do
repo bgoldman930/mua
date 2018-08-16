@@ -45,6 +45,31 @@ tempfile nhgis_county_spine
 save `nhgis_county_spine'
 
 *------------------------------------------------------------------------------
+* Kaveh's Georgia doctors
+*------------------------------------------------------------------------------
+
+import excel "${root}/data/raw/georgia_doctor_counts.xlsx", sheet("Sheet1") firstrow clear
+
+*Merge on the state and county codes
+drop if mi(county)
+rename (state county) (state_name county_name)
+merge 1:1 state_name county_name using `nhgis_county_spine', assert(2 3) keep(3) ///
+	keepusing(state county pop1970 pop1980) nogen
+
+*Build doctor variable
+destring totpcpatientcare, replace
+g kaveh_docspc1975=(1000*totpcpatientcare)/((pop1970+pop1980)/2)
+	
+*Clean
+keep state county kaveh_docspc1975
+destring kaveh_docspc1975, replace
+
+*Output
+compress
+tempfile kaveh
+save `kaveh'
+
+*------------------------------------------------------------------------------
 * Pull the doctor density data from the AHRF
 *------------------------------------------------------------------------------
 
@@ -194,7 +219,9 @@ save `mua'
 
 *Start with spine and then execute merges
 use `nhgis_county_spine', clear
+count
 merge 1:1 state county using `docspc', keep(3) nogen
+merge 1:1 state county using `kaveh', assert(1 3) nogen
 merge 1:1 state_name county_name using `inf_mort', keep(1 3) nogen
 merge 1:1 state county using `cdc_wide', keep(1 3) nogen
 merge 1:1 state county using `mua', keep(1 3)
