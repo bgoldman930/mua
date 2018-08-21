@@ -170,7 +170,7 @@ keep if 	(designationtypecode == "MUA" | ///
 			
 *Create an indicator for governor's exception
 g governor_exception=designationtypecode=="MUA-GE"
-			
+			 
 *Build state, county, and tract variables
 tostring countyfips, replace format(%05.0f) 
 split ct, parse(".")

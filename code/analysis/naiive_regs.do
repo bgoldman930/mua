@@ -59,7 +59,11 @@ reg mort_rate1981_1983 mua_1978
 
 *What about conditional on IMU score and its' inputs?
 *Start by documenting the relationship between mortality and IMU score before the policy
-*binscatter mort_rate1977 imu_hat_1970, n(30) linetype(none)
+binscatter mort_rate1975_1977 imu_hat_1970, n(30) linetype(none) by(mua_1978)
+
+*Try looking at this post policy
+*XX Deal with the outlier here
+binscatter mort_rate1975_1977 imu_hat_1970, n(30) linetype(none) by(mua_1978)
 
 *Now try the regression controlling for the various components of the IMU score
 *We are asking if places who have same IMU score but one got designated and one did not
@@ -157,3 +161,25 @@ reg mort_pct_dif mua_1978 poor_share1970 cdc_inf_mort1973_1977 share_senior1970 
 
 *Do this as a binscatter
 binscatter mort_dif imu_hat_1970, by(mua_1978)
+
+*------------------------------------------------------------------------------
+* Try a simple time series
+*------------------------------------------------------------------------------
+
+*Limit to variables needed for the plot
+keep state county mua desig_year mua_1978 imu_hat_1970 poor_share1980 poor_share1970 mort_rate*
+drop mort_rate1981_1983 mort_rate1975_1977
+
+*Reshape back long
+reshape long mort_rate, i(state county mua desig_year poor_share1980 poor_share1970 mua_1978 imu_hat_1970) j(year)
+
+*Make a naiive pot of MUAs vs. all other counties
+binscatter mort_rate year, discrete rd(1978.5) by(mua_1978)
+
+*Be a bit more restrictive, do it for only poor places
+binscatter mort_rate year if poor_share>.14, discrete rd(1978.5) by(mua_1978)
+
+*Did "better" places get healthier over this time period
+*Weird to condition on 1968 mortality rates because of mean reversion - instead use poverty rate
+g poor=poor_share1970>.176 if ~mi(poor_share1970)
+binscatter mort_rate year if year>=1970, discrete by(poor) reportreg

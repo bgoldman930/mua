@@ -28,19 +28,6 @@ g correct=mua_hat==mua_1978 if ~mi(mua_hat)
 su correct
 di "`=round(`r(mean)'*100, .1)'% correct"
 
-*Make a map by prediction type
-g predict=1 if correct==1 & imu_hat_1970<=62
-replace predict=2 if correct==1 & imu_hat_1970>62
-replace predict=3 if correct==0 & imu_hat_1970<=62
-replace predict=4 if correct==0 & imu_hat_1970>62
-tostring state, gen(st) format(%02.0f)
-tostring county, gen(cty) format(%03.0f)
-g tmp=st+cty
-drop state county
-rename tmp county
-destring county, replace
-
-
 *Generate a varible that contains fraction of eligible MUAs designated at the state level
 *Use a cutoff of 55 instead of 62 because of measurement error
 g tmp=mua_1978 if imu_hat_1970<=55
