@@ -29,6 +29,8 @@ drop if mi(poor_share1970) | mi(inf_mort1966_1970) | mi(docspc1970) | mi(share_s
 *Estimate the IMU score
 buildimu, pov(poor_share1970) inf(inf_mort1966_1970) docs(docspc1970) old(share_senior1970) hat(imu_hat_1970)
 
+*XX Consider dropping the problematic states here
+
 *Merge on the mortality rates
 merge 1:1 state county using `mort', assert(2 3) keep(3) nogen
 rename year desig_year

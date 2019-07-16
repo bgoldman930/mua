@@ -19,6 +19,9 @@ g treat=imu<62
 *Now generate the noised up (observed) imu score
 g imu_noise=imu+rnormal(0, 7)
 
+*Generate an ITT variable based of the noisy IMU
+g treat_noise=imu_noise<62
+
 *Build an outcome variable that is a function of the IMU score and the treatment
 *In our data imu has a coef of 2.6 in the below reg—you get this with a slope of 5 in true IMU
 *So is the mean of the mortality rates
@@ -41,7 +44,43 @@ graph export "${root}/results/figures/sim_stage2.pdf", replace
 reg mort imu treat // the true policy estimate
 
 *Graph of the biased estimate
-binscatter mort imu_noise, by(treat) rd(62) /// 
-		title("Second Stage with Noisy Observed IMU Score") 
+binscatter mort imu_noise, rd(62) n(30) ///
+	title("Second Stage with Noisy Observed IMU Score") 
 graph export "${root}/results/figures/sim_noise_stage2.pdf", replace
-reg mort imu_noise treat // the biased policy estimate
+reg mort imu_noise treat_noise // the biased policy estimate
+
+*Graph the nosied up second stage treatment effect as a function of the amount of noise 
+*	in the IMU score
+forvalues i=1/50 {
+	drop imu_noise treat_noise
+	g imu_noise=imu+rnormal(0, `i')
+	g treat_noise=imu_noise<62
+	reg mort imu_noise treat_noise
+	local te`i'=_b[treat_noise]
+	local se`i'=_se[treat_noise]
+	corr imu imu_noise
+	local corr`i'=`r(rho)'
+}
+	
+*Plot the estimates
+clear
+set obs 50
+g te=.
+g se=. 
+g rho=.
+forvalues i=1/50 {
+	replace te=`te`i'' in `i'
+	replace se=`se`i'' in `i'
+	replace rho=`corr`i'' in `i'
+}
+g lo=te-1.96*se
+g hi=te+1.96*se
+
+twoway ///
+	scatter te rho, mcolor(black) || ///
+	rcap hi lo rho, lcolor(black) ///
+	xtitle("IMU Treatment Bandwidth") ///
+	ytitle("Difference in Differences Estimate") ///
+	legend(off) ///
+	title("Policy Impact by Treatment Bandwidth") 
+graph export "${root}/results/figures/dif_n_dif_by_bwidth.pdf", replace
