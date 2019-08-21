@@ -41,3 +41,5 @@ do "${root}/code/data_setup/county_with_covars.do"
 do "${root}/code/analysis/rd_dnd_1978.do"
 do "${root}/code/analysis/map_of_predictions.do"
 do "${root}/code/analysis/naiive regs.do"
+
+* Try the basic DID (8-2019) now that I understand econometrics
