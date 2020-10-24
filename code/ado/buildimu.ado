@@ -2,7 +2,7 @@
 *	subcomponents and the predicted score
 
 program define buildimu
-	version 15.1
+	version 14.1
 	
 	syntax , pov(varname numeric) inf(varname numeric) docs(varname numeric) old(varname numeric) ///
 		hat(string) [keep]
